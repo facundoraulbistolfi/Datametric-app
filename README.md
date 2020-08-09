@@ -1,1 +1,1 @@
-# ControlTemperatura
+# Frigusmetro
