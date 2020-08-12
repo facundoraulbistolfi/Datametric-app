@@ -3,6 +3,8 @@
     /* make transparent link selection, adjust last value opacity 0 to 1.0 */
 }
 
+/*  https://coolors.co/75aadb-2e72b2-ffffff-fcbf49-fbac0e */
+
 body {
     -webkit-touch-callout: none;
     /* prevent callout to copy image, etc when tap to hold */
@@ -37,4 +39,61 @@ body {
     width: inherit;
     height: inherit;
     background-color: #d6e7f5;
+}
+
+.logo img {
+    width: 50%;
+    margin: auto;
+    display: block;
+}
+
+.loading-bar img {
+    width: 10%;
+    margin: auto;
+    display: block;
+}
+
+/* Sytle buttons */
+
+.button {
+    margin-top: 2px;
+    background-color: #5d9cec;
+    border-radius: 8px;
+    border: 1px groove black;
+    color: white;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 30px;
+    padding: 8px 20px;
+}
+
+.button:hover {
+    background-color: #4a89dc;
+}
+
+.btn-group {
+    width: 80%;
+    margin: auto;
+    align-content: center;
+}
+
+.btn-group button {
+    display: block;
+    width: 80%;
+    margin: auto;
+    margin-top: 20px;
+    /* Make the buttons appear below each other */
+}
+
+.column {
+    width: 80%;
+    margin: auto;
+    align-content: center;
+}
+
+/*TEXTO*/
+
+.titulo {
+    font-size: large;
 }

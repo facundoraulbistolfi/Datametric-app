@@ -10,34 +10,61 @@
     <meta name="viewport" content="initial-scale=1, width=device-width, viewport-fit=cover">
     <meta name="color-scheme" content="light dark">
     <link rel="stylesheet" href="css/index.css">
-    <title>Frigusmetro</title>
+    <title>Datametric</title>
 </head>
 
 <body>
     <div class="app">
         <div id="banner" class="panel">
-            <label>Frigusmetro</label>
-            <button onclick="onDeviceReady()">asd</button>
+            <div class="logo">
+                <img src="./img/DATAMETRIC LOGO.png" id="asd" alt="logo">
+
+            </div>
+            <div class="loading-bar">
+                <img src="./img/loading.gif" id="asd" alt="logo">
+            </div>
         </div>
         <!--
             PANTALLA PRINCIPAL
         -->
         <div id="panel_home" class="panel">
-            <label>Frigusmetro</label>
-            <button id="buttonData" class="button">GET DATA</button>
-            <button id="buttonData" class="button">SET DATA</button>
+            <div class="logo">
+                <img src="./img/DATAMETRIC LOGO.png" alt="logo">
+            </div>
+            <div class="btn-group">
+                <button id="bGetData" class="button">GET DEVICE DATA</button>
+                <button id="bSetData" class="button">CONFIGURE DEVICE</button>
+            </div>
         </div>
         <!--
                 PANTALLA SETEO DE DATOS A ENVIAR
-            -->
+        -->
         <div id="panel_set_data" class="panel">
-            <label>Set header and timestamp</label>
-            <label>Header</label>
-            <textarea></textarea>
-            <label>Date and Time</label>
-            <input type="datetime"></input>
-            <button id="back" class="button">BACK</button>
-            <button id="back" class="button">NEXT</button>
+            <div class="logo">
+                <img src="./img/DATAMETRIC LOGO.png" alt="logo">
+            </div>
+            <div class="column" width="50%">
+                <label class="titulo">Set header and timestamp</label>
+                <div>
+                    <label>Header</label>
+                    <textarea id="dataSetHeader"></textarea>
+                </div>
+                <div>
+                    <label>Date and Time</label>
+                    <input id="dataSetDate" type="datetime-local"></input>
+                </div>
+            </div>
+            <div class="btn-next-back">
+                <button id="bSetBack" class="button">BACK</button>
+                <button id="bSetNext" class="button">NEXT</button>
+            </div>
+        </div>
+        <!--
+                PANTALLA CONEXION Y ENVIO DE DATOS
+            -->
+        <div id="panel_info" class="panel">
+            <label>Please power on the device before bluetooth search</label>
+            <button id="bInfoNext" class="button">Continue</button>
         </div>
         <!--
                 PANTALLA CONEXION Y ENVIO DE DATOS
