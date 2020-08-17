@@ -10,7 +10,7 @@ body {
     /* prevent callout to copy image, etc when tap to hold */
     -webkit-text-size-adjust: none;
     /* prevent webkit from resizing text to fit */
-    -webkit-user-select: none;
+    -webkit-user-select: text;
     /* prevent copy paste, to allow, change 'none' to 'text' */
     background-color: #E4E4E4;
     font-family: system-ui, -apple-system, -apple-system-font, 'Segoe UI', 'Roboto', sans-serif;
@@ -87,13 +87,43 @@ body {
 }
 
 .column {
-    width: 80%;
+    display: block;
+    width: fit-content;
     margin: auto;
     align-content: center;
+}
+
+.row {
+    display: block;
+    width: fit-content;
+    margin: auto;
+    align-content: center;
+}
+
+.footer {
+    position: fixed;
+    bottom: 15px;
+    margin: auto;
+    width: 100%;
 }
 
 /*TEXTO*/
 
 .titulo {
     font-size: large;
+    margin-bottom: 20px;
+    display: block;
+}
+
+.semititulo {
+    display: block;
+    font-size: medium;
+    margin-bottom: 5px;
+}
+
+#dataSetHeader {
+    display: block;
+    width: 300px;
+    height: 150px;
+    overflow-y: auto;
 }

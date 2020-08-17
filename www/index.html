@@ -15,7 +15,7 @@
 
 <body>
     <div class="app">
-        <div id="banner" class="panel">
+        <div id="loading" class="panel">
             <div class="logo">
                 <img src="./img/DATAMETRIC LOGO.png" id="asd" alt="logo">
 
@@ -46,39 +46,86 @@
             <div class="column" width="50%">
                 <label class="titulo">Set header and timestamp</label>
                 <div>
-                    <label>Header</label>
+                    <label class="semititulo">Header</label>
                     <textarea id="dataSetHeader"></textarea>
+                    <button id="bImportHeader" class="button">Import</button>
                 </div>
+                <hr>
                 <div>
-                    <label>Date and Time</label>
+                    <label class="semititulo">Date and Time</label>
                     <input id="dataSetDate" type="datetime-local"></input>
                 </div>
             </div>
-            <div class="btn-next-back">
-                <button id="bSetBack" class="button">BACK</button>
-                <button id="bSetNext" class="button">NEXT</button>
+            <div class="footer">
+                <div class="row">
+                    <button id="bSetBack" class="button">BACK</button>
+                    <button id="bSetNext" class="button">NEXT</button>
+                </div>
             </div>
         </div>
         <!--
-                PANTALLA CONEXION Y ENVIO DE DATOS
+                PANTALLA INFO
             -->
         <div id="panel_info" class="panel">
-            <label>Please power on the device before bluetooth search</label>
-            <button id="bInfoNext" class="button">Continue</button>
+            <div class="logo">
+                <img src="./img/DATAMETRIC LOGO.png" alt="logo">
+            </div>
+            <div class="column">
+                <label class="titulo">Please power on the device before bluetooth search</label>
+                <img src="./img/info.jpg" alt="info">
+            </div>
+
+            <div class="footer">
+                <div class="row">
+                    <button id="bInfoBack" class="button">BACK</button>
+                    <button id="bInfoNext" class="button">NEXT</button>
+                </div>
+            </div>
         </div>
         <!--
-                PANTALLA CONEXION Y ENVIO DE DATOS
-            -->
+            PANTALLA CONEXION Y ENVIO DE DATOS
+        -->
         <div id="panel_connect" class="panel">
-            <label>Set header and timestamp</label>
-
+            <div class="logo">
+                <img src="./img/DATAMETRIC LOGO.png" alt="logo">
+            </div>
+            <div id="dispositivos" style="visibility: hidden;" class="column">
+                <label class="titulo">SELECT DEVICE</label>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>NAME</th>
+                            <th>STATUS</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla_dispositivos">
+                    </tbody>
+                </table>
+            </div>
+            <div class="footer">
+                <div class="row">
+                    <button id="bConBack" class="button">BACK</button>
+                    <button id="bConNext" class="button">NEXT</button>
+                    <!-- style="visibility: hidden;" -->
+                </div>
+            </div>
         </div>
         <!--
                 PANTALLA RECEPCION DATOS
             -->
         <div id="panel_get_data" class="panel">
+            <div class="logo">
+                <img src="./img/DATAMETRIC LOGO.png" alt="logo">
+            </div>
             <label>Header</label>
             <textarea></textarea>
+            <button id="bExport" class="button">EXPORT</button>
+            <div class="footer">
+                <div class="row">
+                    <button id="bGetHome" class="button">HOME</button>
+                </div>
+            </div>
         </div>
     </div>
     <script src="cordova.js"></script>
