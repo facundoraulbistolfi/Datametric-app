@@ -106,7 +106,7 @@
             <div class="footer">
                 <div class="row">
                     <button id="bConBack" class="button">BACK</button>
-                    <button id="bConNext" class="button">NEXT</button>
+                    <button id="bConNext" style="visibility: hidden;" class="button">NEXT</button>
                     <!-- style="visibility: hidden;" -->
                 </div>
             </div>
@@ -119,12 +119,25 @@
                 <img src="./img/DATAMETRIC LOGO.png" alt="logo">
             </div>
             <label>Header</label>
-            <textarea></textarea>
+            <br>
+            <textarea style="height: 500px; width: 100%;" id="getHeader"></textarea><br>
             <button id="bExport" class="button">EXPORT</button>
             <div class="footer">
                 <div class="row">
                     <button id="bGetHome" class="button">HOME</button>
                 </div>
+            </div>
+        </div>
+        <!--
+            PANTALLA ERROR
+        -->
+        <div id="panel_error" class="panel">
+            <div class="logo">
+                <img src="./img/DATAMETRIC LOGO.png" alt="logo">
+            </div>
+            <div class="column">
+                <label class="titulo">Error with bluetooth</label>
+                <label>Please active bluetooth and reopen the app</label>
             </div>
         </div>
     </div>

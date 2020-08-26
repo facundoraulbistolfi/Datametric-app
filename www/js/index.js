@@ -7,7 +7,7 @@ const COMMAND_HEADER = 'h';
 const COMMAND_SET_HOUR = 's';
 const COMMAND_GET_HOUR = 'g';
 
-const BYTES_REG = 8;
+const BYTES_REG = 6;
 const CARACTER_END_ROW = (new Uint8Array([0x3b]))[0]; //';'
 const CARACTER_END_DATA = (new Uint8Array([0xff]))[0];
 
@@ -18,6 +18,7 @@ const PANEL_SET = "panel_set_data";
 const PANEL_INFO = "panel_info";
 const PANEL_CONNECT = "panel_connect";
 const PANEL_GET = "panel_get_data";
+const PANEL_ERROR = "panel_error";
 
 //Tipos de conexion
 const T_GET = 1;
@@ -31,8 +32,8 @@ var device;
 var foundedDevices = [];
 var buffer = [];
 var dataSet;
-
-mostrarPanel(PANEL_LOADING);
+var countEndData;
+mostrarPanel(PANEL_HOME);
 
 /*
     EVENTS
@@ -45,10 +46,12 @@ function onDeviceReady() {
     //Activar bluetooth
     bluetoothSerial.enable(
         function () {
-            //app.changeStatus("Bluetooth enabled");
+
+            console.log("Bluetooth enabled");
         },
         function () {
-            //app.changeStatus("Error: Bluetooth not enabled");
+            alert("Error: Bluetooth not enabled");
+            mostrarPanel(PANEL_ERROR);
             //document.getElementById("botonRefresh").disabled = true;
         }
     );
@@ -184,30 +187,30 @@ function getDevices() {
     //En iOS: trae los dispositivos LTE cercanos
     bluetoothSerial.list(actualizarLista, onError);
 
-    alert("getDEvices");
+    //alert("getDEvices");
 }
 
 function actualizarLista(list) {
-    log("Actualizar lista");
+    //logger("Actualizar lista");
     list.forEach((x) => { x.status = (window.cordova.platformId === "android") ? "Paired" : "Near"; });
     list.forEach(addToList);
-    document.getElementById("botonRefresh").disabled = false;
+    //document.getElementById("botonRefresh").disabled = false;
     //document.getElementById("botonCancel").disabled = true;
     //document.getElementById("botonRefresh").innerHTML = "Refresh";
 }
 
 function actualizarListaUnpaired(list) {
-    log("Actualizar lista");
+    //logger("Actualizar lista");
     list.forEach((x) => { x.status = "Near" });
     list.forEach(addToList);
-    document.getElementById("botonRefresh").disabled = false;
+    //document.getElementById("botonRefresh").disabled = false;
     //document.getElementById("botonCancel").disabled = true;
     //document.getElementById("botonRefresh").innerHTML = "Refresh";
 }
 
 function addToList(result) {
     //Revisa si ya existe un dispositivo con esa id para no tener duplicados en la lista
-    alert("addToList" + result);
+    //alert("addToList" + result);
 
     var yaExiste = foundedDevices.some((device) => { return device.id === result.id; });
     //Si es un dispositivo nuevo se agrega a la lista y a la tabla
@@ -224,15 +227,16 @@ function addToList(result) {
 }
 
 function conectar(device_id) {
-    log("Conectar a:" + device_id);
+    //logger("Conectar a:" + device_id);
     if (confirm("Conectarse a " + device_id + "?")) {
         bluetoothSerial.connect(device_id,
             () => {
                 device = device_id;
+                bluetoothSerial.clear();
+                bluetoothSerial.clearDeviceDiscoveredListener();
                 connectNext();
-                bluetoothSerial.clear(() => {
-                    log("Buffer cleared")
-                }, onError);
+
+
             }, onError);
     }
 }
@@ -242,9 +246,11 @@ FUNCIONES GET DATA
 ------------------------------ */
 
 function obtenerDatos() {
+    mostrarPanel(PANEL_GET);
     bluetoothSerial.write(COMMAND_DATA, () => {
-        log("Comando enviado");
+        logger("Comando enviado");
         buffer = [];
+        countEndData = 0;
         bluetoothSerial.subscribeRawData(onReceiveMessageData, onError);
     }, onError);
 
@@ -255,41 +261,83 @@ function onReceiveMessageData(buffer_in) {
 
     //Tomo los datos del buffer y los paso a un array
     var data = Array.from(new Uint8Array(buffer_in));
-    buffer = buffer.concat(data);
+    console.log(data);
+
 
     //Compruebo de que si el ultimo caracter un FF, se termina la trasmision
-    if (buffer[buffer.length - 1] == CARACTER_END_DATA) {
-        procesarBufferData();
-        bluetoothSerial.unsubscribeRawData(log("Connection finished"), onError);
+    var contains = data.some(element => { return element === 255 });
+    buffer = buffer.concat(data);
+    console.log(contains);
+    if (contains) countEndData++;
+    if (countEndData == 3) {
+        console.log("tercer coso");
+        procesarBuffer(buffer);
+        bluetoothSerial.unsubscribeRawData(logger("Connection finished"), onError);
     }
+
+    //document.getElementById("dataGet").value = buffer;
+
+
+    /*
+    
+    var pos = data.some(element => { return element === 255 });
+    var contains = (pos >= 0);
+    console.log(contains);
+    if (contains) {
+        countEndData++;
+        if (countEndData == 2) {
+            buffer = buffer.concat(data.subarray(pos));
+            cargarHeader(buffer);
+            buffer = [];
+            buffer = buffer.concat(data.subarray(pos + 1, data.length));
+        }
+        if (countEndData == 3) {
+            procesarBufferData(buffer);
+            bluetoothSerial.unsubscribeRawData(logger("Connection finished"), onError);
+        }
+    } else {
+        buffer = buffer.concat(data);
+    }*/
+}
+
+function procesarBuffer(b) {
+    var primer = b.indexOf(255);
+    var secun = b.indexOf(255, primer + 1);
+    var terce = b.indexOf(255, secun + 1);
+    cargarHeader(b.slice(0, secun));
+    procesarBufferData(b.slice(secun + 1));
+}
+
+function cargarHeader(b) {
+    var header = String.fromCharCode.apply(null, b);
+    document.getElementById("getHeader").value = document.getElementById("getHeader").value + "\nHeader: \n" + header;
 
 }
 
-function procesarBufferData() {
-    log("Procesar lista de registros");
+function procesarBufferData(b) {
+    //logger("Procesar lista de registros");
     var listaRegistros = [];
     var ultReg = false;
     var i = 0;
     while (!ultReg) {
-        log("Registro " + (i + 1));
+        //logger("Registro " + (i + 1));
         var offset = BYTES_REG * i;
-        listaRegistros[i] = {
-            "Dia": (buffer[offset++]) + "/" + buffer[offset++] + "/" + buffer[offset++],
-            "Hora": buffer[offset++] + ":" + buffer[offset++] + ":" + buffer[offset++],
-            "Temp": getTemperatura(buffer[offset++]),
-            "end": buffer[offset++]
-        };
-        log(JSON.stringify(listaRegistros[i]));
+        console.log(b[offset]);
+        if ((b[offset] !== 255) && (b[offset] !== undefined)) {
+            console.log("add reg");
+            listaRegistros[i] = {
+                "Dia": (b[offset++]) + "/" + b[offset++] + "/" + b[offset++],
+                "Hora": b[offset++] + ":" + b[offset++],
+                "Temp": b[offset++]
+            };
+        } else {
+            ultReg = true;
+        }
 
-        ultReg = (listaRegistros[i].end == CARACTER_END_ROW) ? false : true;
-        log(ultReg);
-        log("Ultimo registro " + listaRegistros[i].end);
-        log("CARACTER_END_ROW " + CARACTER_END_ROW);
         i++;
     }
-    buffer = [];
+    console.log("enden");
     escribirRegistros(listaRegistros);
-    obtenerHeader();
 }
 
 function getTemperatura(temp) {
@@ -298,7 +346,8 @@ function getTemperatura(temp) {
     return (temp / 16);
 }
 
-function escribirRegistros() {
+function escribirRegistros(lista) {
+    document.getElementById("getHeader").value = document.getElementById("getHeader").value + "\nLista Registros: \n" + JSON.stringify(lista);
 
 }
 
@@ -320,11 +369,12 @@ FUNCIONES LOG Y OTRAS
 ------------------------------ */
 
 function onError(err) {
-    //log("ERROR: " + JSON.stringify(err));
+    //logger("ERROR: " + JSON.stringify(err));
+    console.log("ERROR: " + JSON.stringify(err));
     alert("ERROR: " + JSON.stringify(err));
 }
 
-function log(msj) {
-    alert(msj);
+function logger(msj) {
+    console.log(msj);
     log = log.concat("\n" + msj);
 }
