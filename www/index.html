@@ -22,7 +22,12 @@
             </div>
             <div class="loading-bar">
                 <img src="./img/loading.gif" id="asd" alt="logo">
+
             </div>
+            <div class="column">
+                <label class="loading-text" id="textLoading">Loading</label>
+            </div>
+
         </div>
         <!--
             PANTALLA PRINCIPAL
@@ -72,8 +77,10 @@
             </div>
             <div class="column">
                 <label class="titulo">Please power on the device before bluetooth search</label>
-                <img src="./img/info.jpg" alt="info">
+
             </div>
+            <div class="imagen"><img src="./img/info.jpg" alt="info"></div>
+
 
             <div class="footer">
                 <div class="row">
@@ -91,7 +98,7 @@
             </div>
             <div id="dispositivos" style="visibility: hidden;" class="column">
                 <label class="titulo">SELECT DEVICE</label>
-                <table>
+                <table class="blueTable">
                     <thead>
                         <tr>
                             <th>ID</th>
@@ -118,12 +125,33 @@
             <div class="logo">
                 <img src="./img/DATAMETRIC LOGO.png" alt="logo">
             </div>
-            <label>Header</label>
-            <br>
-            <textarea style="height: 500px; width: 100%;" id="getHeader"></textarea><br>
-            <button id="bExport" class="button">EXPORT</button>
+            <div>
+                <label class="titulo">Header</label>
+                <br>
+                <textarea style="height: 200px; width: 90%;" id="getHeader"></textarea><br>
+            </div>
+            <div>
+                <label class="titulo">Data</label>
+                <br>
+                <div class="blockData">
+                    <table class="blueTable">
+                        <thead>
+                            <tr>
+                                <th>Dia</th>
+                                <th>Hora</th>
+                                <th>Temperatura</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabla_data">
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
             <div class="footer">
                 <div class="row">
+                    <button id="bExport" class="button">EXPORT</button>
                     <button id="bGetHome" class="button">HOME</button>
                 </div>
             </div>

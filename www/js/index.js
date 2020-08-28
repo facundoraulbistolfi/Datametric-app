@@ -33,7 +33,13 @@ var foundedDevices = [];
 var buffer = [];
 var dataSet;
 var countEndData;
-mostrarPanel(PANEL_HOME);
+
+// Variables para exportar
+var listaRegistros = [];
+var header = "";
+var nombreArchivo = "";
+
+mostrarPanel(PANEL_LOADING);
 
 /*
     EVENTS
@@ -75,7 +81,6 @@ document.getElementById("bInfoNext").addEventListener("click", infoNext);
 //PANEL_CONNECT
 document.getElementById("bConBack").addEventListener("click", connectBack);
 document.getElementById("bConNext").addEventListener("click", connectNext);
-
 //PANEL_GET
 document.getElementById("bGetHome").addEventListener("click", getHome);
 
@@ -246,11 +251,13 @@ FUNCIONES GET DATA
 ------------------------------ */
 
 function obtenerDatos() {
-    mostrarPanel(PANEL_GET);
+    mostrarPanel(PANEL_LOADING);
+    document.getElementById("textLoading").innerText = "Sending command ...";
     bluetoothSerial.write(COMMAND_DATA, () => {
         logger("Comando enviado");
         buffer = [];
         countEndData = 0;
+        document.getElementById("textLoading").innerText = "Receiving data ...";
         bluetoothSerial.subscribeRawData(onReceiveMessageData, onError);
     }, onError);
 
@@ -301,6 +308,7 @@ function onReceiveMessageData(buffer_in) {
 }
 
 function procesarBuffer(b) {
+    document.getElementById("textLoading").innerText = "Procesing data ...";
     var primer = b.indexOf(255);
     var secun = b.indexOf(255, primer + 1);
     var terce = b.indexOf(255, secun + 1);
@@ -316,7 +324,7 @@ function cargarHeader(b) {
 
 function procesarBufferData(b) {
     //logger("Procesar lista de registros");
-    var listaRegistros = [];
+    var lista = [];
     var ultReg = false;
     var i = 0;
     while (!ultReg) {
@@ -325,10 +333,10 @@ function procesarBufferData(b) {
         console.log(b[offset]);
         if ((b[offset] !== 255) && (b[offset] !== undefined)) {
             console.log("add reg");
-            listaRegistros[i] = {
-                "Dia": (b[offset++]) + "/" + b[offset++] + "/" + b[offset++],
-                "Hora": b[offset++] + ":" + b[offset++],
-                "Temp": b[offset++]
+            lista[i] = {
+                "dia": (b[offset++]) + "/" + b[offset++] + "/" + b[offset++],
+                "hora": b[offset++] + ":" + b[offset++],
+                "temperatura": b[offset++]
             };
         } else {
             ultReg = true;
@@ -337,7 +345,7 @@ function procesarBufferData(b) {
         i++;
     }
     console.log("enden");
-    escribirRegistros(listaRegistros);
+    escribirRegistros(lista);
 }
 
 function getTemperatura(temp) {
@@ -347,8 +355,19 @@ function getTemperatura(temp) {
 }
 
 function escribirRegistros(lista) {
-    document.getElementById("getHeader").value = document.getElementById("getHeader").value + "\nLista Registros: \n" + JSON.stringify(lista);
+    //document.getElementById("getHeader").value = document.getElementById("getHeader").value + "\nLista Registros: \n" + JSON.stringify(lista);
 
+    listaRegistros = lista;
+
+    for (var elem of lista) {
+        var listItem = document.createElement('tr');
+        listItem.innerHTML =
+            '<td class="">' + elem.dia + '</td>' +
+            '<td class="">' + elem.hora + '</td>' +
+            '<td class="">' + elem.temperatura + '</td>';
+        document.getElementById("tabla_data").appendChild(listItem);
+    }
+    mostrarPanel(PANEL_GET);
 }
 
 
