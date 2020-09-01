@@ -39,7 +39,7 @@ var listaRegistros = [];
 var header = "";
 var nombreArchivo = "";
 
-mostrarPanel(PANEL_LOADING);
+mostrarPanel(PANEL_GET);
 
 /*
     EVENTS
@@ -62,6 +62,8 @@ function onDeviceReady() {
         }
     );
     mostrarPanel(PANEL_HOME);
+
+    exportarDatos();
 }
 
 /* ------------------------------
@@ -82,7 +84,9 @@ document.getElementById("bInfoNext").addEventListener("click", infoNext);
 document.getElementById("bConBack").addEventListener("click", connectBack);
 document.getElementById("bConNext").addEventListener("click", connectNext);
 //PANEL_GET
+document.getElementById("bExport").addEventListener("click", exportarDatos);
 document.getElementById("bGetHome").addEventListener("click", getHome);
+
 
 
 /* ------------------------------
@@ -242,7 +246,7 @@ function conectar(device_id) {
                 connectNext();
 
 
-            }, onError);
+            }, onErrorConnection);
     }
 }
 
@@ -268,43 +272,17 @@ function onReceiveMessageData(buffer_in) {
 
     //Tomo los datos del buffer y los paso a un array
     var data = Array.from(new Uint8Array(buffer_in));
-    console.log(data);
-
 
     //Compruebo de que si el ultimo caracter un FF, se termina la trasmision
     var contains = data.some(element => { return element === 255 });
     buffer = buffer.concat(data);
-    console.log(contains);
     if (contains) countEndData++;
     if (countEndData == 3) {
-        console.log("tercer coso");
+        logger("3er FF");
+        bluetoothSerial.unsubscribeRawData(() => { logger("unsubscribeRawData") }, onError);
+        bluetoothSerial.disconnect(() => { logger("bluettoth desconected") }, onError);
         procesarBuffer(buffer);
-        bluetoothSerial.unsubscribeRawData(logger("Connection finished"), onError);
     }
-
-    //document.getElementById("dataGet").value = buffer;
-
-
-    /*
-    
-    var pos = data.some(element => { return element === 255 });
-    var contains = (pos >= 0);
-    console.log(contains);
-    if (contains) {
-        countEndData++;
-        if (countEndData == 2) {
-            buffer = buffer.concat(data.subarray(pos));
-            cargarHeader(buffer);
-            buffer = [];
-            buffer = buffer.concat(data.subarray(pos + 1, data.length));
-        }
-        if (countEndData == 3) {
-            procesarBufferData(buffer);
-            bluetoothSerial.unsubscribeRawData(logger("Connection finished"), onError);
-        }
-    } else {
-        buffer = buffer.concat(data);
-    }*/
 }
 
 function procesarBuffer(b) {
@@ -312,40 +290,37 @@ function procesarBuffer(b) {
     var primer = b.indexOf(255);
     var secun = b.indexOf(255, primer + 1);
     var terce = b.indexOf(255, secun + 1);
-    cargarHeader(b.slice(0, secun));
+    cargarHeader(b.slice(0, primer));
     procesarBufferData(b.slice(secun + 1));
+
+    mostrarPanel(PANEL_GET);
 }
 
 function cargarHeader(b) {
-    var header = String.fromCharCode.apply(null, b);
-    document.getElementById("getHeader").value = document.getElementById("getHeader").value + "\nHeader: \n" + header;
-
+    header = String.fromCharCode.apply(null, b);
+    document.getElementById("getHeader").value = header;
 }
 
 function procesarBufferData(b) {
     //logger("Procesar lista de registros");
-    var lista = [];
+    listaRegistros = [];
     var ultReg = false;
     var i = 0;
     while (!ultReg) {
         //logger("Registro " + (i + 1));
         var offset = BYTES_REG * i;
-        console.log(b[offset]);
         if ((b[offset] !== 255) && (b[offset] !== undefined)) {
-            console.log("add reg");
-            lista[i] = {
-                "dia": (b[offset++]) + "/" + b[offset++] + "/" + b[offset++],
-                "hora": b[offset++] + ":" + b[offset++],
+            listaRegistros[i] = {
+                "dia": normNumero(b[offset++]) + "/" + normNumero(b[offset++]) + "/" + (b[offset++] + 2000),
+                "hora": normNumero(b[offset++]) + ":" + normNumero(b[offset++]),
                 "temperatura": b[offset++]
             };
         } else {
             ultReg = true;
         }
-
         i++;
     }
-    console.log("enden");
-    escribirRegistros(lista);
+    escribirRegistros();
 }
 
 function getTemperatura(temp) {
@@ -354,24 +329,66 @@ function getTemperatura(temp) {
     return (temp / 16);
 }
 
-function escribirRegistros(lista) {
+function escribirRegistros() {
     //document.getElementById("getHeader").value = document.getElementById("getHeader").value + "\nLista Registros: \n" + JSON.stringify(lista);
 
-    listaRegistros = lista;
-
-    for (var elem of lista) {
+    for (var elem of listaRegistros) {
         var listItem = document.createElement('tr');
         listItem.innerHTML =
             '<td class="">' + elem.dia + '</td>' +
             '<td class="">' + elem.hora + '</td>' +
-            '<td class="">' + elem.temperatura + '</td>';
+            '<td class="">' + elem.temperatura + ' °C </td>';
         document.getElementById("tabla_data").appendChild(listItem);
     }
-    mostrarPanel(PANEL_GET);
+
+}
+
+//Agregar el 0 a la izquierda
+function normNumero(n) {
+    return ('0' + n).slice(-2);
+}
+
+function exportarDatos() {
+
+    var fileName = 'datametric-log-' + formatDate(new Date(Date.now())) + '.csv';
+    alert("Save to file: " + cordova.file.dataDirectory + fileName);
+    window.resolveLocalFileSystemURL(cordova.file.applicationStorageDirectory, (dir) => {
+        dir.getFile(fileName, { create: true }, (file) => {
+            writeLog(file);
+
+        }, onError);
+    }, onError);
+
+    alert("Finished");
 }
 
 
+function writeLog(logOb) {
+    if (!logOb) return;
+    logOb.createWriter(function (fileWriter) {
+        fileWriter.seek(fileWriter.length);
+        fileWriter.write(exportToCsv(header, listaRegistros));
+        console.log("File writed");
+    }, onError);
+}
 
+function exportToCsv(header, data) {
+    function processRow(reg) {
+        return reg.dia + ',' + reg.hora + ',' + reg.temperatura + '\n';
+    }
+    var csvFile = header + "\n";
+    for (var i = 0; i < data.length; i++) {
+        csvFile += processRow(data[i]);
+    }
+    return new Blob([csvFile], { type: 'text/csv;charset=utf-8;' });
+}
+
+function formatDate(date) {
+    var hours = date.getHours();
+    var minutes = date.getMinutes();
+    minutes = minutes < 10 ? '0' + minutes : minutes;
+    return '' + date.getFullYear() + (date.getMonth() + 1) + date.getDate() + hours + minutes;
+}
 
 /* ------------------------------
 FUNCIONES SEND DATA
@@ -391,6 +408,15 @@ function onError(err) {
     //logger("ERROR: " + JSON.stringify(err));
     console.log("ERROR: " + JSON.stringify(err));
     alert("ERROR: " + JSON.stringify(err));
+}
+
+function onErrorConnection(err) {
+    console.log("ERROR CONEXION" + JSON.stringify(err));
+    alert("ERROR CONEXION: " + JSON.stringify(err));
+    bluetoothSerial.unsubscribeRawData(() => { logger("unsubscribeRawData") }, onError);
+    bluetoothSerial.disconnect(() => { logger("bluettoth desconected") }, onError);
+    mostrarPanel(PANEL_HOME);
+
 }
 
 function logger(msj) {

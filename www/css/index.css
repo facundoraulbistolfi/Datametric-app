@@ -122,6 +122,11 @@ body {
     display: block;
 }
 
+.texto {
+    font-size: large;
+    display: block;
+}
+
 .semititulo {
     display: block;
     font-size: medium;
@@ -141,7 +146,7 @@ body {
 }
 
 .blockData {
-    height: 500px;
+    height: 400px;
     width: 90%;
     display: block;
     overflow-y: scroll;
