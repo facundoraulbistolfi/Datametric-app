@@ -38,8 +38,9 @@ var countEndData;
 var listaRegistros = [];
 var header = "";
 var nombreArchivo = "";
+var lastFileCreated = "";
 
-mostrarPanel(PANEL_GET);
+mostrarPanel(PANEL_LOADING);
 
 /*
     EVENTS
@@ -62,8 +63,6 @@ function onDeviceReady() {
         }
     );
     mostrarPanel(PANEL_HOME);
-
-    exportarDatos();
 }
 
 /* ------------------------------
@@ -350,37 +349,49 @@ function normNumero(n) {
 
 function exportarDatos() {
 
+    /*Guardar en file system*/
     var fileName = 'datametric-log-' + formatDate(new Date(Date.now())) + '.csv';
-    alert("Save to file: " + cordova.file.dataDirectory + fileName);
-    window.resolveLocalFileSystemURL(cordova.file.applicationStorageDirectory, (dir) => {
+    alert("Save to file: " + cordova.file.externalDataDirectory + fileName);
+    window.resolveLocalFileSystemURL(cordova.file.externalDataDirectory, (dir) => {
         dir.getFile(fileName, { create: true }, (file) => {
             writeLog(file);
-
+            lastFileCreated = fileName;
         }, onError);
     }, onError);
 
-    alert("Finished");
+    /* Enviar */
+    window.plugins.socialsharing.share('Here is your CSV file', 'Your CSV', cordova.file.externalDataDirectory + fileName)
 }
 
 
 function writeLog(logOb) {
+    console.log("logOb");
+    console.log(logOb);
     if (!logOb) return;
     logOb.createWriter(function (fileWriter) {
-        fileWriter.seek(fileWriter.length);
-        fileWriter.write(exportToCsv(header, listaRegistros));
+        //fileWriter.seek(fileWriter.length);
+        var obj = exportToCsv(header, listaRegistros);
+        console.log("obj");
+        console.log(obj);
+        fileWriter.write(obj);
+
         console.log("File writed");
     }, onError);
 }
 
 function exportToCsv(header, data) {
     function processRow(reg) {
-        return reg.dia + ',' + reg.hora + ',' + reg.temperatura + '\n';
+        return reg.dia + ';' + reg.hora + ';' + reg.temperatura + '\n';
     }
-    var csvFile = header + "\n";
+    var csvFile = header + ";;\nDATOS;;\n";
+    csvFile += "Date;Hour;Temperature\n"
     for (var i = 0; i < data.length; i++) {
         csvFile += processRow(data[i]);
     }
-    return new Blob([csvFile], { type: 'text/csv;charset=utf-8;' });
+    csvFile += "<\\data>";
+    console.log("csvFile");
+    console.log(csvFile);
+    return (new Blob([csvFile], { type: 'text/csv;charset=utf-8;' }));
 }
 
 function formatDate(date) {
