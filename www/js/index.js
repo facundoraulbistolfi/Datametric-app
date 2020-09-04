@@ -2,10 +2,11 @@
 const UUID_SERVICE = "cc88c38f-5da3-4ae2-aaf0-9a22f8f4d5f7";
 const UUID_CHARACTERISTIC = "29619ec5-2799-4a46-8c81-fca529cd56f3";
 
+const COMMAND_NAME_DEVICE = 'i';
 const COMMAND_DATA = 'w';
-const COMMAND_HEADER = 'h';
-const COMMAND_SET_HOUR = 's';
-const COMMAND_GET_HOUR = 'g';
+const COMMAND_SET_DATE = 'a';
+const COMMAND_SET_HEADER = 'b';
+const COMMAND_RESET = 'r';
 
 const BYTES_REG = 6;
 const CARACTER_END_ROW = (new Uint8Array([0x3b]))[0]; //';'
@@ -37,8 +38,9 @@ var countEndData;
 // Variables para exportar
 var listaRegistros = [];
 var header = "";
-var nombreArchivo = "";
+var deviceName = "";
 var lastFileCreated = "";
+var fileName = "";
 
 mostrarPanel(PANEL_LOADING);
 
@@ -127,6 +129,7 @@ function setBack() {
 function setNext() {
     tipo_conexion = T_SET;
     //alert(document.getElementById("dataSetDate").value);
+
     dataSet =
     {
         "header": document.getElementById("dataSetDate").value,
@@ -166,7 +169,7 @@ function connectNext() {
     if (tipo_conexion === T_SET)
         enviarDatos();
     else
-        obtenerDatos();
+        obtenerDeviceName();
 }
 
 //Ventana get datos -> PANEL_GET
@@ -253,11 +256,33 @@ function conectar(device_id) {
 FUNCIONES GET DATA
 ------------------------------ */
 
-function obtenerDatos() {
+function obtenerDeviceName() {
+
     mostrarPanel(PANEL_LOADING);
+
+    bluetoothSerial.write(COMMAND_NAME_DEVICE, () => {
+        logger("Comand i  enviado");
+        document.getElementById("textLoading").innerText = "Receiving device name ...";
+        bluetoothSerial.subscribeRawData(onReceiveMessageDeviceName, onError);
+    }, onError);
+}
+
+function onReceiveMessageDeviceName(buffer_in) {
+
+    //Tomo los datos del buffer y los paso a un array
+    deviceName = String.fromCharCode.apply(null, Array.from(new Uint8Array(buffer_in)));
+    //console.log("device name " + deviceName);
+    bluetoothSerial.unsubscribeRawData(() => { logger("unsubscribeRawData") }, onError);
+    //console.log("obtener DAtos");
+    obtenerDatos();
+}
+
+function obtenerDatos() {
+
     document.getElementById("textLoading").innerText = "Sending command ...";
+
     bluetoothSerial.write(COMMAND_DATA, () => {
-        logger("Comando enviado");
+        //logger("Comando enviado");
         buffer = [];
         countEndData = 0;
         document.getElementById("textLoading").innerText = "Receiving data ...";
@@ -277,7 +302,7 @@ function onReceiveMessageData(buffer_in) {
     buffer = buffer.concat(data);
     if (contains) countEndData++;
     if (countEndData == 3) {
-        logger("3er FF");
+        //logger("3er FF");
         bluetoothSerial.unsubscribeRawData(() => { logger("unsubscribeRawData") }, onError);
         bluetoothSerial.disconnect(() => { logger("bluettoth desconected") }, onError);
         procesarBuffer(buffer);
@@ -292,11 +317,12 @@ function procesarBuffer(b) {
     cargarHeader(b.slice(0, primer));
     procesarBufferData(b.slice(secun + 1));
 
-    mostrarPanel(PANEL_GET);
+
 }
 
 function cargarHeader(b) {
     header = String.fromCharCode.apply(null, b);
+    document.getElementById("getDeviceName").innerText = deviceName;
     document.getElementById("getHeader").value = header;
 }
 
@@ -320,6 +346,8 @@ function procesarBufferData(b) {
         i++;
     }
     escribirRegistros();
+    guardarArchivo();
+    mostrarPanel(PANEL_GET);
 }
 
 function getTemperatura(temp) {
@@ -347,35 +375,30 @@ function normNumero(n) {
     return ('0' + n).slice(-2);
 }
 
-function exportarDatos() {
-
+function guardarArchivo() {
     /*Guardar en file system*/
-    var fileName = 'datametric-log-' + formatDate(new Date(Date.now())) + '.csv';
-    alert("Save to file: " + cordova.file.externalDataDirectory + fileName);
+    fileName = 'datametric-' + deviceName + '-' + formatDate(new Date(Date.now())) + '.csv';
+    //alert("Save to file: " + cordova.file.externalDataDirectory + fileName);
     window.resolveLocalFileSystemURL(cordova.file.externalDataDirectory, (dir) => {
         dir.getFile(fileName, { create: true }, (file) => {
             writeLog(file);
             lastFileCreated = fileName;
         }, onError);
     }, onError);
+}
 
+function exportarDatos() {
     /* Enviar */
     window.plugins.socialsharing.share('Here is your CSV file', 'Your CSV', cordova.file.externalDataDirectory + fileName)
 }
 
 
 function writeLog(logOb) {
-    console.log("logOb");
-    console.log(logOb);
     if (!logOb) return;
     logOb.createWriter(function (fileWriter) {
         //fileWriter.seek(fileWriter.length);
         var obj = exportToCsv(header, listaRegistros);
-        console.log("obj");
-        console.log(obj);
         fileWriter.write(obj);
-
-        console.log("File writed");
     }, onError);
 }
 
@@ -388,9 +411,6 @@ function exportToCsv(header, data) {
     for (var i = 0; i < data.length; i++) {
         csvFile += processRow(data[i]);
     }
-    csvFile += "<\\data>";
-    console.log("csvFile");
-    console.log(csvFile);
     return (new Blob([csvFile], { type: 'text/csv;charset=utf-8;' }));
 }
 
@@ -407,8 +427,28 @@ FUNCIONES SEND DATA
 
 function enviarDatos() {
 
+    document.getElementById("textLoading").innerText = "RESET DEVICE";
+    mostrarPanel(PANEL_LOADING);
 
-    mostrarPanel(PANEL_HOME);
+    var d = new Date(dataSet.datetime);
+    //DIA//MES//AÑO//hora//min//seg
+    var setDateTime = [COMMAND_SET_DATE, d.getDate(), d.getMonth() + 1, d.getFullYear() - 2000, d.getHours(), d.getMinutes(), 0];
+
+    bluetoothSerial.write(COMMAND_RESET, () => {
+        logger("Reset device");
+
+        document.getElementById("textLoading").innerText = "Setting date";
+        bluetoothSerial.write(setDateTime, () => {
+            logger("date Seted");
+
+
+            document.getElementById("textLoading").innerText = "Setting header";
+
+            alert("DATA SETED")
+            mostrarPanel(PANEL_HOME);
+        }, onError);
+    }, onError);
+
 }
 
 /* ------------------------------
