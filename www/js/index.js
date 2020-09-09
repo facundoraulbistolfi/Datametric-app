@@ -8,6 +8,8 @@ const COMMAND_SET_DATE = 'a';
 const COMMAND_SET_HEADER = 'b';
 const COMMAND_RESET = 'r';
 
+const DELAY_TIME = 200;
+
 const BYTES_REG = 6;
 const CARACTER_END_ROW = (new Uint8Array([0x3b]))[0]; //';'
 const CARACTER_END_DATA = (new Uint8Array([0xff]))[0];
@@ -132,7 +134,7 @@ function setNext() {
 
     dataSet =
     {
-        "header": document.getElementById("dataSetDate").value,
+        "header": document.getElementById("dataSetHeader").value,
         "datetime": document.getElementById("dataSetDate").value
     };
     mostrarPanel(PANEL_INFO);
@@ -165,6 +167,7 @@ function connectBack() {
     else
         mostrarPanel(PANEL_HOME);
 }
+
 function connectNext() {
     if (tipo_conexion === T_SET)
         enviarDatos();
@@ -242,6 +245,9 @@ function conectar(device_id) {
     if (confirm("Conectarse a " + device_id + "?")) {
         bluetoothSerial.connect(device_id,
             () => {
+                document.getElementById("textLoading").innerText = "Loading ...";
+                mostrarPanel(PANEL_LOADING);
+
                 device = device_id;
                 bluetoothSerial.clear();
                 bluetoothSerial.clearDeviceDiscoveredListener();
@@ -257,8 +263,6 @@ FUNCIONES GET DATA
 ------------------------------ */
 
 function obtenerDeviceName() {
-
-    mostrarPanel(PANEL_LOADING);
 
     bluetoothSerial.write(COMMAND_NAME_DEVICE, () => {
         logger("Comand i  enviado");
@@ -301,7 +305,7 @@ function onReceiveMessageData(buffer_in) {
     var contains = data.some(element => { return element === 255 });
     buffer = buffer.concat(data);
     if (contains) countEndData++;
-    if (countEndData == 3) {
+    if (countEndData == 2) {
         //logger("3er FF");
         bluetoothSerial.unsubscribeRawData(() => { logger("unsubscribeRawData") }, onError);
         bluetoothSerial.disconnect(() => { logger("bluettoth desconected") }, onError);
@@ -313,9 +317,9 @@ function procesarBuffer(b) {
     document.getElementById("textLoading").innerText = "Procesing data ...";
     var primer = b.indexOf(255);
     var secun = b.indexOf(255, primer + 1);
-    var terce = b.indexOf(255, secun + 1);
+    //var terce = b.indexOf(255, secun + 1);
     cargarHeader(b.slice(0, primer));
-    procesarBufferData(b.slice(secun + 1));
+    procesarBufferData(b.slice(primer + 1));
 
 
 }
@@ -347,7 +351,8 @@ function procesarBufferData(b) {
     }
     escribirRegistros();
     guardarArchivo();
-    mostrarPanel(PANEL_GET);
+    enviarPorFTP();
+
 }
 
 function getTemperatura(temp) {
@@ -385,6 +390,28 @@ function guardarArchivo() {
             lastFileCreated = fileName;
         }, onError);
     }, onError);
+}
+
+function enviarPorFTP() {
+    document.getElementById("textLoading").innerText = "Connecting FTP ...";
+    window.cordova.plugin.ftp.connect('ftp.datametric.com.ar', 'app@datametric.com.ar', 'setiembre2020', function (ok) {
+        console.info("ftp: connect ok=" + ok);
+
+        // You can do any ftp actions from now on...
+        document.getElementById("textLoading").innerText = "Sending by FTP ...";
+        console.log("FILE: " + cordova.file.externalDataDirectory + lastFileCreated);
+        window.cordova.plugin.ftp.upload(cordova.file.externalDataDirectory + lastFileCreated, '/' + lastFileCreated, function (percent) {
+            if (percent == 1) {
+                console.info("ftp: upload finish");
+                mostrarPanel(PANEL_GET);
+            } else {
+                console.debug("ftp: upload percent=" + percent * 100 + "%");
+                document.getElementById("textLoading").innerText = "ftp: upload percent=" + percent * 100 + "%";
+            }
+        }, onFtpError);
+
+    }, onFtpError);
+
 }
 
 function exportarDatos() {
@@ -427,28 +454,56 @@ FUNCIONES SEND DATA
 
 function enviarDatos() {
 
-    document.getElementById("textLoading").innerText = "RESET DEVICE";
-    mostrarPanel(PANEL_LOADING);
 
     var d = new Date(dataSet.datetime);
     //DIA//MES//AÑO//hora//min//seg
     var setDateTime = [COMMAND_SET_DATE, d.getDate(), d.getMonth() + 1, d.getFullYear() - 2000, d.getHours(), d.getMinutes(), 0];
 
-    bluetoothSerial.write(COMMAND_RESET, () => {
-        logger("Reset device");
+    //console.log("SEND RESET");
 
-        document.getElementById("textLoading").innerText = "Setting date";
-        bluetoothSerial.write(setDateTime, () => {
-            logger("date Seted");
+    //bluetoothSerial.write(COMMAND_RESET, () => {
+    //    logger("Reset device");
+
+    document.getElementById("textLoading").innerText = "Setting date";
+    console.log("SEND DATE");
+    console.log(setDateTime);
+    bluetoothSerial.write(setDateTime, () => {
+        logger("date Seted");
+        document.getElementById("textLoading").innerText = "Setting header";
+
+        console.log("SEND HEADER");
+        console.log(COMMAND_SET_HEADER);
+        var i = 1;
 
 
-            document.getElementById("textLoading").innerText = "Setting header";
 
-            alert("DATA SETED")
-            mostrarPanel(PANEL_HOME);
+
+
+        bluetoothSerial.write(COMMAND_SET_HEADER, () => {
+
+            for (var x of headerToSend) {
+                senWithDelay(x, DELAY_TIME * i++);
+            }
+            setTimeout(function () {
+                console.log("SEND END");
+                bluetoothSerial.write(CARACTER_END_DATA);
+                alert("DATA SETED")
+                bluetoothSerial.disconnect(() => { logger("bluettoth desconected") }, onError);
+                mostrarPanel(PANEL_HOME);
+            }, DELAY_TIME * i++);
         }, onError);
-    }, onError);
 
+
+    }, onError);
+    //}, onError);
+
+}
+
+function senWithDelay(letter, time) {
+    setTimeout(function () {
+        console.log("SEND LETTER " + letter);
+        bluetoothSerial.write(letter);
+    }, time);
 }
 
 /* ------------------------------
@@ -459,6 +514,14 @@ function onError(err) {
     //logger("ERROR: " + JSON.stringify(err));
     console.log("ERROR: " + JSON.stringify(err));
     alert("ERROR: " + JSON.stringify(err));
+}
+
+
+function onFtpError(err) {
+    //logger("ERROR: " + JSON.stringify(err));
+    console.log("ERROR: " + JSON.stringify(err));
+    alert("ERROR: " + JSON.stringify(err));
+    mostrarPanel(PANEL_GET);
 }
 
 function onErrorConnection(err) {
