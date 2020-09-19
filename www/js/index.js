@@ -366,7 +366,7 @@ function procesarBufferData(b) {
             listaRegistros[i] = {
                 "dia": normNumero(b[offset++]) + "/" + normNumero(b[offset++]) + "/" + (b[offset++] + 2000),
                 "hora": normNumero(b[offset++]) + ":" + normNumero(b[offset++]),
-                "temperatura": b[offset++]
+                "temperatura": getTemperatura(b[offset++])
             };
         } else {
             ultReg = true;
@@ -380,14 +380,14 @@ function procesarBufferData(b) {
 
 }
 
-//TODO: Borrar
 function getTemperatura(temp) {
     if (temp > 0x80)	// procesar el signo
         temp = temp * -1;
-    return (temp / 16);
+    return temp;
 }
 
 function escribirRegistros() {
+    document.getElementById("tabla_data").innerHTML = "";
     for (var elem of listaRegistros) {
         var listItem = document.createElement('tr');
         listItem.innerHTML =
@@ -479,11 +479,6 @@ function exportarDatos() {
 FUNCIONES SEND DATA
 ------------------------------ */
 
-function recibirDataBackup() {
-
-}
-
-
 function enviarDatos() {
     //Obtiene el dia y la hora ingresada por el usuario para setear
     var d = new Date(dataSet.datetime);
@@ -508,38 +503,45 @@ function enviarDatos() {
             console.log("RECEIVE DATE");
             console.log(buffer_in);
             bluetoothSerial.unsubscribeRawData(() => { logger("unsubscribeRawData") }, onError);
-        }, onError);
 
-        logger("date Seted");
+            document.getElementById("textLoading").innerText = "Setting header";
+            var i = 1;
+            var headerToSend = (dataSet.header);
+            console.log("Send header: " + headerToSend);
+            bluetoothSerial.write(COMMAND_SET_HEADER, () => {
 
-        document.getElementById("textLoading").innerText = "Setting header";
-        var i = 1;
-        var headerToSend = (dataSet.header);
-        console.log("Send header: " + headerToSend);
-        bluetoothSerial.write(COMMAND_SET_HEADER, () => {
+                for (var x of headerToSend) {
+                    senWithDelay(x, DELAY_TIME * i++);
+                }
+                setTimeout(function () {
+                    console.log("SEND FF");
+                    bluetoothSerial.write('ÿ');
 
-            for (var x of headerToSend) {
-                senWithDelay(x, DELAY_TIME * i++);
-            }
-            setTimeout(function () {
-                console.log("SEND FF");
-                bluetoothSerial.write('ÿ');
-
-                document.getElementById("textLoading").innerText = "Send reset";
-                console.log("Send reset");
-                bluetoothSerial.write(COMMAND_RESET, () => {
-                    //Logueo lo que devuelve el SET DATE TIME
+                    //Espero el ff
                     bluetoothSerial.subscribeRawData((buffer_in) => {
-                        console.log("RECEIVE RESET");
+                        console.log("RECEIVE DATE");
                         console.log(buffer_in);
                         bluetoothSerial.unsubscribeRawData(() => { logger("unsubscribeRawData") }, onError);
+                        document.getElementById("textLoading").innerText = "Reset device";
+                        bluetoothSerial.write(COMMAND_RESET, () => {
+                            //Espero a lo que devuelve el RESET
+                            bluetoothSerial.subscribeRawData((buffer_in) => {
+                                console.log("RECEIVE RESET");
+                                console.log(buffer_in);
+                                bluetoothSerial.unsubscribeRawData(() => { logger("unsubscribeRawData") }, onError);
+                                bluetoothSerial.disconnect(() => { logger("bluettoth desconected") }, onError);
+                                alert("DATA SETED");
+                                mostrarPanel(PANEL_HOME);
+                            }, onError);
+
+                        }, onError);
                     }, onError);
-                    alert("DATA SETED")
-                    bluetoothSerial.disconnect(() => { logger("bluettoth desconected") }, onError);
-                    mostrarPanel(PANEL_HOME);
-                }, onError);
-            }, DELAY_TIME * i++);
+                }, DELAY_TIME * i++);
+            }, onError);
+
         }, onError);
+
+
     }, onError);
 
 

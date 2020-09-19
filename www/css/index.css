@@ -168,7 +168,7 @@ table.blueTable td, table.blueTable th {
 }
 
 table.blueTable tbody td {
-    font-size: 13px;
+    font-size: 20px;
 }
 
 table.blueTable tr:nth-child(even) {
@@ -184,7 +184,7 @@ table.blueTable thead {
 }
 
 table.blueTable thead th {
-    font-size: 15px;
+    font-size: 23px;
     font-weight: bold;
     color: #FFFFFF;
     text-align: center;

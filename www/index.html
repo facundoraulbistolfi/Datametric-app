@@ -71,7 +71,7 @@
         </div>
         <!--
                 PANTALLA INFO
-            -->
+        -->
         <div id="panel_info" class="panel">
             <div class="logo">
                 <img src="./img/DATAMETRIC LOGO.png" alt="logo">
@@ -127,31 +127,32 @@
                 <img src="./img/DATAMETRIC LOGO.png" alt="logo">
             </div>
             <div>
-                <label class="texto">Device</label>
-                <label readonly id="getDeviceName"></label>
-            </div>
-            <div>
-                <label class="texto">Header</label>
-                <textarea style="height: 50px; width: 90%;" id="getHeader"></textarea>
-            </div>
-            <div>
-                <label class="texto">Data</label>
-                <div class="blockData">
-                    <table class="blueTable">
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Hour</th>
-                                <th>Temperature</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tabla_data">
+                <div>
+                    <label class="texto">Device</label>
+                    <label readonly id="getDeviceName"></label>
+                </div>
+                <div>
+                    <label class="texto">Header</label>
+                    <textarea style="height: 50px; width: 90%;" id="getHeader"></textarea>
+                </div>
+                <div>
+                    <label class="texto">Data</label>
+                    <div class="blockData">
+                        <table class="blueTable">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Hour</th>
+                                    <th>Temp</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla_data">
 
-                        </tbody>
-                    </table>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
-
             <div class="footer">
                 <div class="row">
                     <button id="bExport" class="button">EXPORT</button>
