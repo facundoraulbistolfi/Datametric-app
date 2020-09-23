@@ -10,7 +10,7 @@
     <meta name="viewport" content="initial-scale=1, width=device-width, viewport-fit=cover">
     <meta name="color-scheme" content="light dark">
     <link rel="stylesheet" href="css/index.css">
-    <title>Datametric</title>
+    <title>datametric</title>
 </head>
 
 <body>
@@ -25,7 +25,7 @@
 
             </div>
             <div class="column">
-                <label class="loading-text" id="textLoading">Loading app</label>
+                <label class="loading-text" id="textLoading">loading app ...</label>
             </div>
 
         </div>
@@ -36,10 +36,43 @@
             <div class="logo">
                 <img src="./img/DATAMETRIC LOGO.png" alt="logo">
             </div>
-            <div class="btn-group">
-                <button id="bGetData" class="button">GET DEVICE DATA</button>
-                <button id="bSetData" class="button">CONFIGURE DEVICE</button>
-                <button id="bTest" style="visibility: hidden;" class="button">TEST</button>
+            <div style="display:flex;justify-content:center;align-items:center; height: 70%;">
+                <div class="btn-group-main">
+                    <button id="bGetData" class="button" style="height: 100px; margin-bottom: 70px;
+                    ">get device
+                        data</button>
+                    <button id="bSetData" class="button" style="height: 70px;">configure device</button>
+                </div>
+            </div>
+            <div class="row">
+                <input id="idi_en" type="image" class="miniButton selected" src="./img/en.png" />
+                <input id="idi_es" type="image" class="miniButton" src="./img/es.png" />
+                <input id="bContact" type="image" class="miniButton" src="./img/help.png" />
+            </div>
+
+        </div>
+        <!--
+                            PANTALLA CONTACTO
+                        -->
+        <div id="panel_contact" class="panel">
+            <div class="logo">
+                <img src="./img/DATAMETRIC LOGO.png" id="asd" alt="logo">
+
+            </div>
+            <div>
+                Juan Pablo,
+                info para la ayuda en la app:
+
+                WhatsApp (chat): + 54 911 3227 2283
+                email: contact@datametric.com.ar
+                web: datametric.com.ar
+
+                Saludos
+            </div>
+            <div class="footer">
+                <div class="row">
+                    <button id="bGoHome" class="button">HOME</button>
+                </div>
             </div>
         </div>
         <!--

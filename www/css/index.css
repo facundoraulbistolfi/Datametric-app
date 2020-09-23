@@ -41,6 +41,10 @@ body {
     background-color: #d6e7f5;
 }
 
+.logo {
+    background-color: #5d9cec;
+}
+
 .logo img {
     width: 50%;
     margin: auto;
@@ -79,18 +83,27 @@ body {
     background-color: #4a89dc;
 }
 
-.btn-group {
-    width: 80%;
+.btn-group-main {
+    width: 95%;
     margin: auto;
     align-content: center;
 }
 
-.btn-group button {
+.btn-group-main button {
     display: block;
     width: 80%;
     margin: auto;
-    margin-top: 20px;
+    font-size: 30px !important;
     /* Make the buttons appear below each other */
+}
+
+.miniButton {
+    height: 50px;
+    margin: 10px;
+}
+
+.miniButton.selected {
+    border: "1px blue solid"
 }
 
 .column {

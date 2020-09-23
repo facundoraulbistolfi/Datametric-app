@@ -31,6 +31,11 @@ const T_SET = 2;
 const T_NUL = 0;
 var tipo_conexion = T_NUL;
 
+//IDIOMAS
+const IDI_ES = 1;
+const IDI_EN = 2;
+var idioma;
+
 //Variables
 var log = "";
 var device;
@@ -48,7 +53,7 @@ var isBackup = false;
 var lastConnection;
 
 mostrarPanel(PANEL_LOADING);
-
+cambiarIdioma(IDI_EN);
 /*
     EVENTS
 */
@@ -74,8 +79,9 @@ function onDeviceReady() {
 //PANEL_HOME
 document.getElementById("bSetData").addEventListener("click", buttonSetData);
 document.getElementById("bGetData").addEventListener("click", buttonGetData);
-document.getElementById("bTest").addEventListener("click", func_test);
-
+document.getElementById("idi_en").addEventListener("click", () => { cambiarIdioma(IDI_EN) });
+document.getElementById("idi_es").addEventListener("click", () => { cambiarIdioma(IDI_ES) });
+document.getElementById("bContact").addEventListener("click", () => { mostrarPanel(PANEL_CONTACT); });
 //PANEL_SET
 document.getElementById("bSetBack").addEventListener("click", setBack);
 document.getElementById("bSetNext").addEventListener("click", setNext);
@@ -88,6 +94,8 @@ document.getElementById("bConNext").addEventListener("click", connectNext);
 //PANEL_GET
 document.getElementById("bExport").addEventListener("click", exportarDatos);
 document.getElementById("bGetHome").addEventListener("click", getHome);
+//PANEL_CONTACT
+document.getElementById("bGoHome").addEventListener("click", getHome);
 
 /* ------------------------------
     FUNCIONES VENTANAS
@@ -586,4 +594,22 @@ function logger(msj) {
 
 function func_test() {
     alert("test");
+}
+
+/* funcion cambio idioma */
+
+function cambiarIdioma(idiomaNuevo) {
+    if (idioma == idiomaNuevo) return;
+    switch (idiomaNuevo) {
+        case IDI_ES:
+            document.getElementById("bGetData").innerText = "obtener datos del dispositivo";
+            document.getElementById("bSetData").innerText = "configurar dispositivo";
+            idioma = idiomaNuevo;
+            break;
+        case IDI_EN:
+            document.getElementById("bGetData").innerText = "get device data";
+            document.getElementById("bSetData").innerText = "configure device";
+            idioma = idiomaNuevo;
+            break;
+    }
 }
