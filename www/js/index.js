@@ -66,7 +66,7 @@ function onDeviceReady() {
     bluetoothSerial.enable(
         function () { console.log("Bluetooth enabled"); },
         function () {
-            alert("Error: Bluetooth not enabled");
+            alert(getMessage("errorBluetooth"));
             mostrarPanel(PANEL_ERROR);
         }
     );
@@ -76,6 +76,10 @@ function onDeviceReady() {
 /* ------------------------------
     BUTTONS
    ------------------------------ */
+//PANEL_CONTACT
+document.getElementById("cont_wsp").addEventListener("click", contactWsp);
+document.getElementById("cont_web").addEventListener("click", contactWeb);
+document.getElementById("cont_mail").addEventListener("click", contactEmail);
 //PANEL_HOME
 document.getElementById("bSetData").addEventListener("click", buttonSetData);
 document.getElementById("bGetData").addEventListener("click", buttonGetData);
@@ -195,13 +199,13 @@ function getDevices() {
 
 function actualizarLista(list) {
     //Agrega a cada elemento a la tabla
-    list.forEach((x) => { x.status = (window.cordova.platformId === "android") ? "Paired" : "Near"; });
+    list.forEach((x) => { x.status = (window.cordova.platformId === "android") ? getMessage("Paired") : getMessage("Near"); });
     list.forEach(addToList);
 }
 
 function actualizarListaUnpaired(list) {
     //Agrega a cada elemento a la tabla
-    list.forEach((x) => { x.status = "Near" });
+    list.forEach((x) => { x.status = getMessage("Near") });
     list.forEach(addToList);
 }
 
@@ -222,13 +226,13 @@ function addToList(result) {
 }
 
 function conectar(device_id) {
-    if (confirm("Conectarse a " + device_id + "?")) {
+    if (confirm(getMessage("Connect") + device_id + "?")) {
 
         bluetoothSerial.connect(device_id,
             () => {
                 lastConnection = device_id;
 
-                document.getElementById("textLoading").innerText = "Loading ...";
+                document.getElementById("textLoading").innerText = getMessage("Loading");
                 mostrarPanel(PANEL_LOADING);
                 device = device_id;
                 bluetoothSerial.clear();
@@ -268,9 +272,9 @@ function obtenerDeviceName() {
     bluetoothSerial.write(COMMAND_NAME_DEVICE, () => {
         console.log("Comand i enviado");
         if (!isBackup)
-            document.getElementById("textLoading").innerText = "Receiving device name ...";
+            document.getElementById("textLoading").innerText = getMessage("GettingData");
         else
-            document.getElementById("textLoading").innerText = "Sending data .";
+            document.getElementById("textLoading").innerText = getMessage("SendingData");
         bluetoothSerial.subscribeRawData((buffer_in) => {
             //Tomo los datos del buffer y los paso a un array
             deviceName = String.fromCharCode.apply(null, Array.from(new Uint8Array(buffer_in)));
@@ -282,11 +286,11 @@ function obtenerDeviceName() {
 
 
 function obtenerDatos() {
-    if (!isBackup) document.getElementById("textLoading").innerText = "Sending command ...";
+    //if (!isBackup) document.getElementById("textLoading").innerText = "Sending command ...";
     bluetoothSerial.write(COMMAND_DATA, () => {
         buffer = [];
         countEndData = 0;
-        if (!isBackup) document.getElementById("textLoading").innerText = "Receiving data ...";
+        //if (!isBackup) document.getElementById("textLoading").innerText = "Receiving data ...";
         //Al recibir datos, concatenar el buffer
         bluetoothSerial.subscribeRawData((buffer_in) => { buffer = buffer.concat(Array.from(new Uint8Array(buffer_in))); }, onError);
     }, onError);
@@ -315,19 +319,14 @@ function onReceiveMessageData(buffer_in) {
 
 
 function onErrorConnection(err) {
-    //console.log("ERROR CONEXION" + JSON.stringify(err));
-    //alert("ERROR CONEXION: " + JSON.stringify(err));
-    console.log("conexion terminada");
     bluetoothSerial.unsubscribeRawData(() => { logger("unsubscribeRawData") }, onError);
     bluetoothSerial.disconnect(() => { logger("bluettoth desconected") }, onError);
     console.log(buffer);
     if (buffer.length > 0) {
-        console.log("hay datos en el header");
         if (isBackup) {
-            console.log("isbackup asi que ahora a setear");
             bluetoothSerial.connect(lastConnection,
                 () => {
-                    document.getElementById("textLoading").innerText = "Sending data ...";
+                    document.getElementById("textLoading").innerText = getMessage("SendingData");
                     bluetoothSerial.clear();
                     bluetoothSerial.clearDeviceDiscoveredListener();
                     enviarDatos();
@@ -346,8 +345,8 @@ function onErrorConnection(err) {
 
 
 function procesarBuffer() {
-    document.getElementById("textLoading").innerText = "Procesing data ...";
-    console.log("PROCESAR BUFFER")
+    document.getElementById("textLoading").innerText = getMessage("ProcesingData");
+    //console.log("PROCESAR BUFFER")
     //TODO: Contar cantidad de FF
     var primer = buffer.indexOf(255);
     var secun = buffer.indexOf(255, primer + 1);
@@ -418,7 +417,6 @@ function guardarArchivo() {
         dir.getFile(fileName, { create: true }, (file) => {
             writeLog(file);
             lastFileCreated = fileName;
-
         }, onError);
     }, onError);
 
@@ -427,18 +425,18 @@ function guardarArchivo() {
 function enviarPorFTP() {
     //TODO: ver como guardar mejor las contraseñas
     window.cordova.plugin.ftp.connect('ftp.datametric.com.ar', 'app@datametric.com.ar', 'setiembre2020', function (ok) {
-        console.log("ftp: connect ok=" + ok);
+        //console.log("ftp: connect ok=" + ok);
         // You can do any ftp actions from now on...
-        console.log("FILE: " + cordova.file.externalDataDirectory + lastFileCreated);
+        //console.log("FILE: " + cordova.file.externalDataDirectory + lastFileCreated);
         var ftpPath = ((isBackup) ? "/backups/" : "/") + lastFileCreated;
-        console.log("ftpPath: " + ftpPath);
+        //console.log("ftpPath: " + ftpPath);
         window.cordova.plugin.ftp.upload(cordova.file.externalDataDirectory + lastFileCreated, ftpPath, function (percent) {
             if (percent == 1) {
                 console.log("ftp: upload finish");
                 if (!isBackup) mostrarPanel(PANEL_GET);
             } else {
                 console.log("ftp: upload percent=" + percent * 100 + "%");
-                document.getElementById("textLoading").innerText = "ftp: upload percent=" + percent * 100 + "%";
+                //document.getElementById("textLoading").innerText = "ftp: upload percent=" + percent * 100 + "%";
             }
         }, onFtpError);
 
@@ -459,7 +457,7 @@ function exportToCsv(header, data) {
     function processRow(reg) {
         return reg.dia + ';' + reg.hora + ';' + reg.temperatura + '\n';
     }
-    var csvFile = header + ";;\nDATOS;;\n";
+    var csvFile = header + ";;\nDATA;;\n";
     csvFile += "Date;Hour;Temperature\n"
     for (var i = 0; i < data.length; i++) {
         csvFile += processRow(data[i]);
@@ -501,44 +499,43 @@ function enviarDatos() {
     setDateTime[5] = d.getMinutes();
     setDateTime[6] = 0x0;
 
-    document.getElementById("textLoading").innerText = "Setting date";
-    console.log("set date");
-    console.log(setDateTime);
+    document.getElementById("textLoading").innerText = getMessage("SettingDevice");
+    //console.log("set date");
+    //console.log(setDateTime);
     bluetoothSerial.write(setDateTime, () => {
 
         //Logueo lo que devuelve el SET DATE TIME
         bluetoothSerial.subscribeRawData((buffer_in) => {
-            console.log("RECEIVE DATE");
-            console.log(buffer_in);
+            //console.log("RECEIVE DATE");
+            //console.log(buffer_in);
             bluetoothSerial.unsubscribeRawData(() => { logger("unsubscribeRawData") }, onError);
 
-            document.getElementById("textLoading").innerText = "Setting header";
+            //document.getElementById("textLoading").innerText = "Setting header";
             var i = 1;
             var headerToSend = (dataSet.header);
-            console.log("Send header: " + headerToSend);
+            //console.log("Send header: " + headerToSend);
             bluetoothSerial.write(COMMAND_SET_HEADER, () => {
 
                 for (var x of headerToSend) {
                     senWithDelay(x, DELAY_TIME * i++);
                 }
                 setTimeout(function () {
-                    console.log("SEND FF");
+                    //console.log("SEND FF");
                     bluetoothSerial.write('ÿ');
 
                     //Espero el ff
                     bluetoothSerial.subscribeRawData((buffer_in) => {
-                        console.log("RECEIVE DATE");
+                        // console.log("RECEIVE DATE");
                         console.log(buffer_in);
                         bluetoothSerial.unsubscribeRawData(() => { logger("unsubscribeRawData") }, onError);
-                        document.getElementById("textLoading").innerText = "Reset device";
+                        //document.getElementById("textLoading").innerText = "Reset device";
                         bluetoothSerial.write(COMMAND_RESET, () => {
                             //Espero a lo que devuelve el RESET
                             bluetoothSerial.subscribeRawData((buffer_in) => {
-                                console.log("RECEIVE RESET");
                                 console.log(buffer_in);
                                 bluetoothSerial.unsubscribeRawData(() => { logger("unsubscribeRawData") }, onError);
                                 bluetoothSerial.disconnect(() => { logger("bluettoth desconected") }, onError);
-                                alert("DATA SETED");
+                                alert(getMessage("ConfigSuccess"));
                                 mostrarPanel(PANEL_HOME);
                             }, onError);
 
@@ -566,7 +563,6 @@ function onReceiveDateData(buffer_in) {
 
 function senWithDelay(letter, time) {
     setTimeout(function () {
-        console.log("SEND LETTER " + letter);
         bluetoothSerial.write(letter);
     }, time);
 }
@@ -592,24 +588,116 @@ function logger(msj) {
     console.log(msj);
 }
 
-function func_test() {
-    alert("test");
-}
-
 /* funcion cambio idioma */
 
 function cambiarIdioma(idiomaNuevo) {
     if (idioma == idiomaNuevo) return;
     switch (idiomaNuevo) {
         case IDI_ES:
+            //HOME
             document.getElementById("bGetData").innerText = "obtener datos del dispositivo";
             document.getElementById("bSetData").innerText = "configurar dispositivo";
+            //LOADING
+            document.getElementById("textLoading").innerText = "cargando aplicación ...";
+            //SET
+            document.getElementById("tituloSet").innerText = "setear cabecera \ny marca de tiempo";
+            document.getElementById("set_header").innerText = "cabecera";
+            document.getElementById("bImportHeader").innerText = "importar";
+            document.getElementById("set_timestamp").innerText = "fecha y hora";
+            document.getElementById("bSetBack").innerText = "atras";
+            document.getElementById("bSetNext").innerText = "siguiente";
+            //INFO
+            document.getElementById("info_titulo").innerText = "por favor, encienda el dispositivo antes de continuar";
+            document.getElementById("bInfoBack").innerText = "atras";
+            document.getElementById("bInfoNext").innerText = "siguiente";
+            //CONEXION
+            document.getElementById("con_titulo").innerText = "seleccione dispositivo";
+            document.getElementById("con_col_id").innerText = "id";
+            document.getElementById("con_col_name").innerText = "nombre";
+            document.getElementById("con_col_status").innerText = "estado";
+            document.getElementById("bConBack").innerText = "atras";
+            document.getElementById("bConNext").innerText = "siguiente";
+            //GET
+            document.getElementById("get_device_id").innerText = "id dispositivo: ";
+            document.getElementById("get_header").innerText = "cabecera";
+            document.getElementById("get_data").innerText = "datos";
+            document.getElementById("get_col_date").innerText = "fecha";
+            document.getElementById("get_col_hour").innerText = "hora";
+            document.getElementById("get_col_temp").innerText = "temp";
+            document.getElementById("bExport").innerText = "exportar";
+            document.getElementById("bGetHome").innerText = "inicio";
+            //ERROR
+            document.getElementById("error_tit1").innerText = "error de bluetooth";
+            document.getElementById("error_tit2").innerText = "por favor, active el bluetooth y reinicie la aplicación";
+            //CONTACT
+            document.getElementById("bGoHome").innerText = "inicio";
+            document.getElementById("cont_titulo").innerText = "contacto";
+
             idioma = idiomaNuevo;
             break;
         case IDI_EN:
+            //HOME
             document.getElementById("bGetData").innerText = "get device data";
             document.getElementById("bSetData").innerText = "configure device";
+            //LOADING
+            document.getElementById("textLoading").innerText = "loading app ...";
+            //SET
+            document.getElementById("tituloSet").innerText = "set header and timestamp";
+            document.getElementById("set_header").innerText = "header";
+            document.getElementById("bImportHeader").innerText = "import";
+            document.getElementById("set_timestamp").innerText = "date and Time";
+            document.getElementById("bSetBack").innerText = "back";
+            document.getElementById("bSetNext").innerText = "next";
+            //INFO
+            document.getElementById("info_titulo").innerText = "please power on the device before bluetooth search";
+            document.getElementById("bInfoBack").innerText = "back";
+            document.getElementById("bInfoNext").innerText = "next";
+            //CONEXION
+            document.getElementById("con_titulo").innerText = "select device";
+            document.getElementById("con_col_id").innerText = "id";
+            document.getElementById("con_col_name").innerText = "name";
+            document.getElementById("con_col_status").innerText = "status";
+            document.getElementById("bConBack").innerText = "back";
+            document.getElementById("bConNext").innerText = "next";
+            //GET
+            document.getElementById("get_device_id").innerText = "device id: ";
+            document.getElementById("get_header").innerText = "header";
+            document.getElementById("get_data").innerText = "data";
+            document.getElementById("get_col_date").innerText = "date";
+            document.getElementById("get_col_hour").innerText = "hour";
+            document.getElementById("get_col_temp").innerText = "temp";
+            document.getElementById("bExport").innerText = "export";
+            document.getElementById("bGetHome").innerText = "home";
+            //ERROR
+            document.getElementById("error_tit1").innerText = "error with bluetooth";
+            document.getElementById("error_tit2").innerText = "please active bluetooth and reopen the app";
+            //CONTACT
+            document.getElementById("bGoHome").innerText = "home";
+            document.getElementById("cont_titulo").innerText = "contact";
+            //document.getElementById("").innerText = "";
             idioma = idiomaNuevo;
             break;
     }
+
 }
+
+function getMessage(id) {
+    switch (id) {
+        case "errorBluetooth": return (idioma == IDI_EN) ? "error: bluetooth not enabled" : "error: el bluetooth está desactivado";
+        case "Paired": return (idioma == IDI_EN) ? "paired" : "emparejado";
+        case "Near": return (idioma == IDI_EN) ? "near" : "cercano";
+        case "Loading": return (idioma == IDI_EN) ? "loading ..." : "cargando ...";
+        case "Connect": return (idioma == IDI_EN) ? "connect to " : "conectar a ";
+        case "SendingData": return (idioma == IDI_EN) ? "sending data ... " : "enviando datos ... ";
+        case "GettingData": return (idioma == IDI_EN) ? "getting data ... " : "recibiendo datos ... ";
+        case "ConfigSuccess": return (idioma == IDI_EN) ? "device was succesfully configured" : "el dispositivo fue configurado correctamente";
+        case "SettingDevice": return (idioma == IDI_EN) ? "setting device ..." : "configurando dispositivo ...";
+        case "ProcesingData": return (idioma == IDI_EN) ? "procesing data" : "procesando datos";
+        default: return "<<MESSAGE_ID NOT FOUND>>";
+    }
+}
+
+//Funciones de contacto
+function contactWsp() { window.open("https://wa.me/5491132272283"); }
+function contactWeb() { window.open("https://www.datametric.com.ar"); }
+function contactEmail() { window.open('mailto:contact@datametric.com.ar'); }

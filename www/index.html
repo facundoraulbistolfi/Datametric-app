@@ -39,8 +39,7 @@
             <div style="display:flex;justify-content:center;align-items:center; height: 70%;">
                 <div class="btn-group-main">
                     <button id="bGetData" class="button" style="height: 100px; margin-bottom: 70px;
-                    ">get device
-                        data</button>
+                    ">get device data</button>
                     <button id="bSetData" class="button" style="height: 70px;">configure device</button>
                 </div>
             </div>
@@ -52,22 +51,30 @@
 
         </div>
         <!--
-                            PANTALLA CONTACTO
-                        -->
+            PANTALLA CONTACTO
+        -->
         <div id="panel_contact" class="panel">
             <div class="logo">
                 <img src="./img/DATAMETRIC LOGO.png" id="asd" alt="logo">
 
             </div>
             <div>
-                Juan Pablo,
-                info para la ayuda en la app:
+                <label id="cont_titulo" class="titulo">CONTACT</label>
+                <div style="display:flex;justify-content:center;align-items:center; height: 70%;">
+                    <div class="btn-group-main">
+                        <button id="cont_wsp" class="contactButton">
+                            <img src="./img/wsp.png"> whatsapp
+                        </button>
 
-                WhatsApp (chat): + 54 911 3227 2283
-                email: contact@datametric.com.ar
-                web: datametric.com.ar
+                        <button id="cont_mail" class="contactButton">
+                            <img src="./img/email.png"> email
+                        </button>
 
-                Saludos
+                        <button id="cont_web" class="contactButton">
+                            <img src="./img/web.png"> website
+                        </button>
+                    </div>
+                </div>
             </div>
             <div class="footer">
                 <div class="row">
@@ -76,22 +83,22 @@
             </div>
         </div>
         <!--
-                PANTALLA SETEO DE DATOS A ENVIAR
+            PANTALLA SETEO DE DATOS A ENVIAR
         -->
         <div id="panel_set_data" class="panel">
             <div class="logo">
                 <img src="./img/DATAMETRIC LOGO.png" alt="logo">
             </div>
             <div class="column" width="50%">
-                <label class="titulo">Set header and timestamp</label>
+                <label id="tituloSet" class="titulo">set header and timestamp</label>
                 <div>
-                    <label class="semititulo">Header</label>
+                    <label id="set_header" class="semititulo">Header</label>
                     <textarea id="dataSetHeader"></textarea>
                     <button id="bImportHeader" style="visibility: hidden;" class="button">Import</button>
                 </div>
                 <hr>
                 <div>
-                    <label class="semititulo">Date and Time</label>
+                    <label id="set_timestamp" class="semititulo"></label>
                     <input id="dataSetDate" type="datetime-local"></input>
                 </div>
             </div>
@@ -110,7 +117,7 @@
                 <img src="./img/DATAMETRIC LOGO.png" alt="logo">
             </div>
             <div class="column">
-                <label class="titulo">Please power on the device before bluetooth search</label>
+                <label id="info_titulo" class="titulo">Please power on the device before bluetooth search</label>
 
             </div>
             <div class="imagen"><img src="./img/info.jpg" alt="info"></div>
@@ -131,13 +138,13 @@
                 <img src="./img/DATAMETRIC LOGO.png" alt="logo">
             </div>
             <div id="dispositivos" style="visibility: hidden;" class="column">
-                <label class="titulo">SELECT DEVICE</label>
+                <label id="con_titulo" class="titulo">SELECT DEVICE</label>
                 <table class="blueTable">
                     <thead>
                         <tr>
-                            <th>ID</th>
-                            <th>NAME</th>
-                            <th>STATUS</th>
+                            <th id="con_col_id">ID</th>
+                            <th id="con_col_name">NAME</th>
+                            <th id="con_col_status">STATUS</th>
                         </tr>
                     </thead>
                     <tbody id="tabla_dispositivos">
@@ -161,22 +168,22 @@
             </div>
             <div>
                 <div>
-                    <label class="texto">Device</label>
+                    <label id="get_device_id" class="texto">Device</label>
                     <label readonly id="getDeviceName"></label>
                 </div>
                 <div>
-                    <label class="texto">Header</label>
+                    <label id="get_header" class="texto">Header</label>
                     <textarea style="height: 50px; width: 90%;" id="getHeader"></textarea>
                 </div>
                 <div>
-                    <label class="texto">Data</label>
+                    <label id="get_data" class="texto">Data</label>
                     <div class="blockData">
                         <table class="blueTable">
                             <thead>
                                 <tr>
-                                    <th>Date</th>
-                                    <th>Hour</th>
-                                    <th>Temp</th>
+                                    <th id="get_col_date">Date</th>
+                                    <th id="get_col_hour">Hour</th>
+                                    <th id="get_col_temp">Temp</th>
                                 </tr>
                             </thead>
                             <tbody id="tabla_data">
@@ -201,8 +208,8 @@
                 <img src="./img/DATAMETRIC LOGO.png" alt="logo">
             </div>
             <div class="column">
-                <label class="titulo">Error with bluetooth</label>
-                <label>Please active bluetooth and reopen the app</label>
+                <label id="error_tit1" class="titulo">Error with bluetooth</label>
+                <label id="error_tit2">Please active bluetooth and reopen the app</label>
             </div>
         </div>
     </div>

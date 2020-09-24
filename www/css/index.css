@@ -92,6 +92,7 @@ body {
 .btn-group-main button {
     display: block;
     width: 80%;
+    margin-bottom: 30px;
     margin: auto;
     font-size: 30px !important;
     /* Make the buttons appear below each other */
@@ -129,20 +130,27 @@ body {
 
 /*TEXTO*/
 
+label {
+    text-transform: lowercase;
+    display: block;
+    text-align: center;
+}
+
 .titulo {
-    font-size: large;
+    font-size: 30px;
     margin-bottom: 20px;
+    margin-top: 10px;
     display: block;
 }
 
 .texto {
-    font-size: large;
+    font-size: 20px;
     display: block;
 }
 
 .semititulo {
     display: block;
-    font-size: medium;
+    font-size: 20px;
     margin-bottom: 5px;
 }
 
@@ -159,7 +167,7 @@ body {
 }
 
 .blockData {
-    height: 400px;
+    height: 320px;
     width: 90%;
     display: block;
     overflow-y: scroll;
@@ -222,4 +230,29 @@ table.blueTable tfoot .links a {
     color: #FFFFFF;
     padding: 2px 8px;
     border-radius: 5px;
+}
+
+/*button contacto*/
+
+.contactButton {
+    position: relative;
+    padding: 15px 40px;
+    text-align: center;
+    margin-bottom: 30px;
+    background-color: #5d9cec;
+    border-radius: 8px;
+    border: 1px groove black;
+    color: white;
+    text-decoration: none;
+    display: block;
+    height: 100px;
+    font-size: 30px;
+}
+
+.contactButton img {
+    position: absolute;
+    height: 70px;
+    left: 6px;
+    top: 50%;
+    transform: translateY(-50%);
 }
