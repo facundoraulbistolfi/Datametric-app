@@ -1,12 +1,14 @@
 //const { connect } = require("../../platforms/android/app/build/intermediates/merged_assets/debug/out/www/plugins/cordova-plugin-ftp/www/ftp");
 
 //Constantes Bluetooth
-const UUID_SERVICE = "cc88c38f-5da3-4ae2-aaf0-9a22f8f4d5f7";
-const UUID_CHARACTERISTIC = "29619ec5-2799-4a46-8c81-fca529cd56f3";
+//const UUID_SERVICE = "cc88c38f-5da3-4ae2-aaf0-9a22f8f4d5f7";
+//const UUID_CHARACTERISTIC = "29619ec5-2799-4a46-8c81-fca529cd56f3";
+const UUID_SERVICE = "0000ffe0-0000-1000-8000-00805f9b34fb";
+const UUID_CHARACTERISTIC = "0000ffe1-0000-1000-8000-00805f9b34fb";
 
 //Comandos Datametric device
-const COMMAND_NAME_DEVICE = 'i';//0x69; //Devuele el id unico del dispositivo -> i
-const COMMAND_DATA = 'w';//0x77; //Devuelve el header y los registros temporales de temperatura -> w
+const COMMAND_NAME_DEVICE = 0x69;//'i';//0x69; //Devuele el id unico del dispositivo -> i
+const COMMAND_DATA = 0x77; //'w';//0x77; //Devuelve el header y los registros temporales de temperatura -> w
 const COMMAND_SET_DATE = 0x61; //Setea la hora del dispositivo -> a
 const COMMAND_SET_HEADER = 'b'; //Setea el header del dispositivo -> b
 const COMMAND_RESET = 'r'; //Resetea el contador de registro del dispositivo -> r
@@ -43,6 +45,7 @@ var foundedDevices = [];
 var buffer = [];
 var dataSet;
 var countEndData;
+var magicNumber;
 // Variables para exportar
 var listaRegistros = [];
 var header = "";
@@ -63,7 +66,7 @@ document.addEventListener("deviceready", onDeviceReady);
 */
 function onDeviceReady() {
     //Activar bluetooth
-    bluetoothSerial.enable(
+    ble.enable(
         function () { console.log("Bluetooth enabled"); },
         function () {
             alert(getMessage("errorBluetooth"));
@@ -187,25 +190,14 @@ function getDevices() {
     //Actualizar elementos visuales
     document.getElementById("dispositivos").style.visibility = "visible";
     document.getElementById("tabla_dispositivos").innerHTML = "";
-    //En el caso de ser una aplicación android, los dispositivos que no estan emparejados
-    //se deben traer con bluetoothSerial.discoverUnpaired()
-    if (window.cordova.platformId === "android")
-        bluetoothSerial.discoverUnpaired(actualizarListaUnpaired, onError);
-    //bluetoothSerial.list()
-    //En android: trae los dispositivos emparejados
-    //En iOS: trae los dispositivos LTE cercanos
-    bluetoothSerial.list(actualizarLista, onError);
+
+    //trae los dispositivos LTE cercanos
+    ble.startScan([], addToList, onError);
 }
 
 function actualizarLista(list) {
     //Agrega a cada elemento a la tabla
-    list.forEach((x) => { x.status = (window.cordova.platformId === "android") ? getMessage("Paired") : getMessage("Near"); });
-    list.forEach(addToList);
-}
-
-function actualizarListaUnpaired(list) {
-    //Agrega a cada elemento a la tabla
-    list.forEach((x) => { x.status = getMessage("Near") });
+    //list.forEach((x) => { x.status = (window.cordova.platformId === "android") ? getMessage("Paired") : getMessage("Near"); });
     list.forEach(addToList);
 }
 
@@ -219,7 +211,7 @@ function addToList(result) {
         listItem.innerHTML =
             '<td class="">' + result.id + '</td>' +
             '<td class="">' + result.name + '</td>' +
-            '<td class="">' + result.status + '</td>';
+            '<td class="">' + result.rssi + '</td>';
         document.getElementById("tabla_dispositivos").appendChild(listItem);
         listItem.addEventListener('click', () => { conectar(result.id) });
     }
@@ -228,15 +220,16 @@ function addToList(result) {
 function conectar(device_id) {
     if (confirm(getMessage("Connect") + device_id + "?")) {
 
-        bluetoothSerial.connect(device_id,
+        ble.connect(device_id,
             () => {
                 lastConnection = device_id;
 
                 document.getElementById("textLoading").innerText = getMessage("Loading");
                 mostrarPanel(PANEL_LOADING);
                 device = device_id;
-                bluetoothSerial.clear();
-                bluetoothSerial.clearDeviceDiscoveredListener();
+                //bluetoothSerial.clear();
+                //bluetoothSerial.clearDeviceDiscoveredListener();
+                ble.stopScan(() => { }, onError);
                 connectNext();
             }, onErrorConnection);
     }
@@ -269,32 +262,59 @@ FUNCIONES GET DATA
 
 
 function obtenerDeviceName() {
-    bluetoothSerial.write(COMMAND_NAME_DEVICE, () => {
-        console.log("Comand i enviado");
+
+    magicNumber = 0;
+    ble.startNotification(device, UUID_SERVICE, UUID_CHARACTERISTIC, (buffer_in) => {
+        console.log("mensaje: ");
+        console.log(buffer_in);
+        if (magicNumber == 0) {
+            magicNumber++;
+            //Tomo los datos del buffer y los paso a un array
+            deviceName = String.fromCharCode.apply(null, Array.from(new Uint8Array(buffer_in)));
+            //ble.stopNotification(device, UUID_SERVICE, UUID_CHARACTERISTIC, () => { logger("ble.stopNotification"); obtenerDatos(); }, onError);
+
+            console.log("enviar " + COMMAND_DATA);
+            var data = new Uint8Array(1);
+            data[0] = COMMAND_DATA;
+            buffer = [];
+            ble.writeWithoutResponse(device, UUID_SERVICE, UUID_CHARACTERISTIC, data.buffer, () => {
+                //Al recibir datos, concatenar el buffer
+                console.log("Envia2");
+            }, onError);
+        }
+        else {
+            buffer = buffer.concat(Array.from(new Uint8Array(buffer_in)));
+        }
+    }, onError);
+
+    var data = new Uint8Array(1);
+    data[0] = COMMAND_NAME_DEVICE;
+
+    ble.writeWithoutResponse(device, UUID_SERVICE, UUID_CHARACTERISTIC, data.buffer, () => {
         if (!isBackup)
             document.getElementById("textLoading").innerText = getMessage("GettingData");
         else
             document.getElementById("textLoading").innerText = getMessage("SendingData");
-        bluetoothSerial.subscribeRawData((buffer_in) => {
-            //Tomo los datos del buffer y los paso a un array
-            deviceName = String.fromCharCode.apply(null, Array.from(new Uint8Array(buffer_in)));
-            bluetoothSerial.unsubscribeRawData(() => { logger("unsubscribeRawData") }, onError);
-            obtenerDatos();
-        }, onError);
     }, onError);
 }
 
-
+/*
 function obtenerDatos() {
     //if (!isBackup) document.getElementById("textLoading").innerText = "Sending command ...";
-    bluetoothSerial.write(COMMAND_DATA, () => {
+
+    ble.startNotification(device, UUID_SERVICE, UUID_CHARACTERISTIC,
+        (buffer_in) => { buffer = buffer.concat(Array.from(new Uint8Array(buffer_in))); }, onError);
+
+    var data = new Uint8Array(1);
+    data[0] = COMMAND_DATA;
+
+    ble.write(device, UUID_SERVICE, UUID_CHARACTERISTIC, data, () => {
         buffer = [];
-        countEndData = 0;
+        //countEndData = 0;
         //if (!isBackup) document.getElementById("textLoading").innerText = "Receiving data ...";
         //Al recibir datos, concatenar el buffer
-        bluetoothSerial.subscribeRawData((buffer_in) => { buffer = buffer.concat(Array.from(new Uint8Array(buffer_in))); }, onError);
     }, onError);
-}
+}*/
 /*
 function onReceiveMessageData(buffer_in) {
 
@@ -319,16 +339,16 @@ function onReceiveMessageData(buffer_in) {
 
 
 function onErrorConnection(err) {
-    bluetoothSerial.unsubscribeRawData(() => { logger("unsubscribeRawData") }, onError);
-    bluetoothSerial.disconnect(() => { logger("bluettoth desconected") }, onError);
+    //bluetoothSerial.unsubscribeRawData(() => { logger("unsubscribeRawData") }, onError);
+    ble.disconnect(device, () => { logger("bluettoth desconected") }, onError);
     console.log(buffer);
     if (buffer.length > 0) {
         if (isBackup) {
-            bluetoothSerial.connect(lastConnection,
+            ble.connect(lastConnection,
                 () => {
                     document.getElementById("textLoading").innerText = getMessage("SendingData");
-                    bluetoothSerial.clear();
-                    bluetoothSerial.clearDeviceDiscoveredListener();
+                    //bluetoothSerial.clear();
+                    //bluetoothSerial.clearDeviceDiscoveredListener();
                     enviarDatos();
                 }, onError);
         }
@@ -502,39 +522,43 @@ function enviarDatos() {
     document.getElementById("textLoading").innerText = getMessage("SettingDevice");
     //console.log("set date");
     //console.log(setDateTime);
-    bluetoothSerial.write(setDateTime, () => {
+    ble.writeWithoutResponse(device, UUID_SERVICE, UUID_CHARACTERISTIC, setDateTime, () => {
 
         //Logueo lo que devuelve el SET DATE TIME
-        bluetoothSerial.subscribeRawData((buffer_in) => {
-            //console.log("RECEIVE DATE");
-            //console.log(buffer_in);
-            bluetoothSerial.unsubscribeRawData(() => { logger("unsubscribeRawData") }, onError);
+        ble.read(device, UUID_SERVICE, UUID_CHARACTERISTIC, (buffer_in) => {
 
-            //document.getElementById("textLoading").innerText = "Setting header";
             var i = 1;
             var headerToSend = (dataSet.header);
             //console.log("Send header: " + headerToSend);
-            bluetoothSerial.write(COMMAND_SET_HEADER, () => {
+            var data = new Uint8Array(1);
+            data[0] = COMMAND_SET_HEADER;
+
+            ble.write(device, UUID_SERVICE, UUID_CHARACTERISTIC, data, () => {
 
                 for (var x of headerToSend) {
                     senWithDelay(x, DELAY_TIME * i++);
                 }
                 setTimeout(function () {
                     //console.log("SEND FF");
-                    bluetoothSerial.write('ÿ');
+                    data = new Uint8Array(1);
+                    data[0] = 0xFF;
+                    ble.write(device, UUID_SERVICE, UUID_CHARACTERISTIC, data, () => { }, onError);
 
                     //Espero el ff
-                    bluetoothSerial.subscribeRawData((buffer_in) => {
+                    ble.read(device, UUID_SERVICE, UUID_CHARACTERISTIC, (buffer_in) => {
                         // console.log("RECEIVE DATE");
                         console.log(buffer_in);
-                        bluetoothSerial.unsubscribeRawData(() => { logger("unsubscribeRawData") }, onError);
+                        //bluetoothSerial.unsubscribeRawData(() => { logger("unsubscribeRawData") }, onError);
                         //document.getElementById("textLoading").innerText = "Reset device";
-                        bluetoothSerial.write(COMMAND_RESET, () => {
+                        data = new Uint8Array(1);
+                        data[0] = COMMAND_RESET;
+
+                        ble.write(device, UUID_SERVICE, UUID_CHARACTERISTIC, data, () => {
                             //Espero a lo que devuelve el RESET
-                            bluetoothSerial.subscribeRawData((buffer_in) => {
+                            ble.read(device, UUID_SERVICE, UUID_CHARACTERISTIC, (buffer_in) => {
                                 console.log(buffer_in);
-                                bluetoothSerial.unsubscribeRawData(() => { logger("unsubscribeRawData") }, onError);
-                                bluetoothSerial.disconnect(() => { logger("bluettoth desconected") }, onError);
+                                //bluetoothSerial.unsubscribeRawData(() => { logger("unsubscribeRawData") }, onError);
+                                ble.disconnect(device, () => { logger("bluettoth desconected") }, onError);
                                 alert(getMessage("ConfigSuccess"));
                                 mostrarPanel(PANEL_HOME);
                             }, onError);
@@ -563,7 +587,9 @@ function onReceiveDateData(buffer_in) {
 
 function senWithDelay(letter, time) {
     setTimeout(function () {
-        bluetoothSerial.write(letter);
+        data = new Uint8Array(1);
+        data[0] = letter;
+        ble.write(device, UUID_SERVICE, UUID_CHARACTERISTIC, data, () => { }, onError);
     }, time);
 }
 
