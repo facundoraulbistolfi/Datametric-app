@@ -73,6 +73,7 @@ function onDeviceReady() {
             mostrarPanel(PANEL_ERROR);
         }
     );
+    //TODO-> PANEL_HOME
     mostrarPanel(PANEL_HOME);
 }
 
