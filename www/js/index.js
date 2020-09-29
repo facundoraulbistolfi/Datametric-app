@@ -10,9 +10,9 @@ const UUID_CHARACTERISTIC = "0000ffe1-0000-1000-8000-00805f9b34fb";
 const COMMAND_NAME_DEVICE = 0x69;//'i';//0x69; //Devuele el id unico del dispositivo -> i
 const COMMAND_DATA = 0x77; //'w';//0x77; //Devuelve el header y los registros temporales de temperatura -> w
 const COMMAND_SET_DATE = 0x61; //Setea la hora del dispositivo -> a
-const COMMAND_SET_HEADER = 'b'; //Setea el header del dispositivo -> b
-const COMMAND_RESET = 'r'; //Resetea el contador de registro del dispositivo -> r
-
+const COMMAND_SET_HEADER = 0x62;//'b'; //Setea el header del dispositivo -> b
+const COMMAND_RESET = 0x72;//'r'; //Resetea el contador de registro del dispositivo -> r
+const END_LINE_CHAR = 0xFF;
 const DELAY_TIME = 150; //Retardo en ms entre cada caracter al setear el header
 
 const BYTES_REG = 6; //Cantidad de bytes por registro temporal
@@ -342,14 +342,21 @@ function onErrorConnection(err) {
     //bluetoothSerial.unsubscribeRawData(() => { logger("unsubscribeRawData") }, onError);
     ble.disconnect(device, () => { logger("bluettoth desconected") }, onError);
     console.log(buffer);
+
+    console.log("onErrorConnection - ble.stopNotification");
+    ble.stopNotification(device, UUID_SERVICE, UUID_CHARACTERISTIC,
+        (msj) => { console.log("MSJ:" + msj) },
+        (err) => { console.log("ERR:" + err) }
+    );
+
     if (buffer.length > 0) {
         if (isBackup) {
             ble.connect(lastConnection,
                 () => {
+                    console.log("reconected to " + lastConnection);
                     document.getElementById("textLoading").innerText = getMessage("SendingData");
-                    //bluetoothSerial.clear();
-                    //bluetoothSerial.clearDeviceDiscoveredListener();
-                    enviarDatos();
+                    enviarDatos(lastConnection);
+
                 }, onError);
         }
 
@@ -505,7 +512,93 @@ function exportarDatos() {
 FUNCIONES SEND DATA
 ------------------------------ */
 
-function enviarDatos() {
+function enviarDatos(dev) {
+    magicNumber = 0;
+    ble.startNotification(dev, UUID_SERVICE, UUID_CHARACTERISTIC, (buffer_in) => {
+        console.log("MENSAJE RECIBIDO: ");
+        console.log(buffer_in);
+        console.log("magicNumber " + magicNumber);
+        if (magicNumber == 0) {
+            //HEADER
+            console.log("SET HEADER");
+            var i = 1;
+            var headerToSend = dataSet.header;
+            var dataH = new Uint8Array(1);
+            dataH[0] = COMMAND_SET_HEADER;
+            console.log(dataH);
+            ble.write(dev, UUID_SERVICE, UUID_CHARACTERISTIC, dataH.buffer, () => { }, onError);
+
+            console.log("for: " + headerToSend);
+            for (var x of headerToSend) {
+                console.log("for: " + x);
+                senWithDelay(dev, x, DELAY_TIME * i++);
+            }
+
+            magicNumber++;
+            console.log("send ff ");
+            setTimeout(function () {
+                console.log("send ff 2");
+                var dataFF = new Uint8Array(1);
+                dataFF[0] = END_LINE_CHAR;
+                console.log(dataFF);
+                ble.write(dev, UUID_SERVICE, UUID_CHARACTERISTIC, dataFF.buffer, () => { console.log("header sended"); }, onError);
+            }, DELAY_TIME * i++);
+
+
+        } else if (magicNumber == 1) {
+            //SEND RESET
+            console.log("SEND RESET");
+            var dataR = new Uint8Array(1);
+            dataR[0] = COMMAND_RESET;
+            console.log(dataR);
+            magicNumber++;
+            ble.write(dev, UUID_SERVICE, UUID_CHARACTERISTIC, dataR.buffer, () => { console.log("RESET SEND"); }, onError);
+
+        } else if (magicNumber == 2) {
+            console.log("config setted - ble.stopNotification");
+            ble.stopNotification(dev, UUID_SERVICE, UUID_CHARACTERISTIC,
+                (msj) => {
+                    console.log("MSJ:" + msj);
+                    ble.disconnect(dev, () => {
+                        console.log("config setted- disconnect");
+                        alert(getMessage("ConfigSuccess"));
+                        mostrarPanel(PANEL_HOME);
+                    }, onError)
+                },
+                (err) => { console.log("ERR:" + err) }
+            );
+        }
+    }, onError);
+
+    //Obtiene el dia y la hora ingresada por el usuario para setear
+    var d = new Date(dataSet.datetime);
+    //Formato: //DIA//MES//AÑO//hora//min//seg
+    //var setDateTime = [COMMAND_SET_DATE, to_hex(d.getDate()), to_hex(d.getMonth() + 1), to_hex(d.getFullYear() - 2000), to_hex(d.getHours()), to_hex(d.getMinutes()), 0];
+    var setDateTime = new Uint8Array(7);
+    setDateTime[0] = COMMAND_SET_DATE;
+    setDateTime[1] = d.getDate();
+    setDateTime[2] = d.getMonth() + 1;
+    setDateTime[3] = d.getFullYear() - 2000;
+    setDateTime[4] = d.getHours();
+    setDateTime[5] = d.getMinutes();
+    setDateTime[6] = 0x0;
+
+    document.getElementById("textLoading").innerText = getMessage("SettingDevice");
+
+    ble.writeWithoutResponse(device, UUID_SERVICE, UUID_CHARACTERISTIC, setDateTime.buffer, () => {
+        document.getElementById("textLoading").innerText = getMessage("SettingDevice");
+    }, onError);
+}
+
+function senWithDelay(dev, letter, time) {
+    setTimeout(function () {
+        console.log("send letter " + letter);
+        console.log("send letter " + stringToBytes(letter));
+        ble.write(dev, UUID_SERVICE, UUID_CHARACTERISTIC, stringToBytes(letter), () => { }, onError);
+    }, time);
+}
+
+function enviarDatos2() {
     //Obtiene el dia y la hora ingresada por el usuario para setear
     var d = new Date(dataSet.datetime);
     //Formato: //DIA//MES//AÑO//hora//min//seg
@@ -541,7 +634,7 @@ function enviarDatos() {
                 setTimeout(function () {
                     //console.log("SEND FF");
                     data = new Uint8Array(1);
-                    data[0] = 0xFF;
+                    data[0] = END_LINE_CHAR;
                     ble.write(device, UUID_SERVICE, UUID_CHARACTERISTIC, data, () => { }, onError);
 
                     //Espero el ff
@@ -585,7 +678,7 @@ function onReceiveDateData(buffer_in) {
 
 }
 
-function senWithDelay(letter, time) {
+function senWithDelay2(letter, time) {
     setTimeout(function () {
         data = new Uint8Array(1);
         data[0] = letter;
@@ -721,6 +814,14 @@ function getMessage(id) {
         case "ProcesingData": return (idioma == IDI_EN) ? "procesing data" : "procesando datos";
         default: return "<<MESSAGE_ID NOT FOUND>>";
     }
+}
+
+function stringToBytes(string) {
+    var array = new Uint8Array(string.length);
+    for (var i = 0, l = string.length; i < l; i++) {
+        array[i] = string.charCodeAt(i);
+    }
+    return array.buffer;
 }
 
 //Funciones de contacto
