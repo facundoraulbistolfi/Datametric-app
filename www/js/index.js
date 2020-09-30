@@ -53,7 +53,9 @@ var deviceName = "";
 var lastFileCreated = "";
 var fileName = "";
 var isBackup = false;
-var lastConnection;
+var lastConnection = null;
+
+
 
 mostrarPanel(PANEL_LOADING);
 cambiarIdioma(IDI_EN);
@@ -61,19 +63,97 @@ cambiarIdioma(IDI_EN);
     EVENTS
 */
 document.addEventListener("deviceready", onDeviceReady);
+document.addEventListener("pause", onPause, false);
+document.addEventListener("backbutton", onBackKeyDown, false);
+
 /*
     On device ready
 */
 function onDeviceReady() {
     //Activar bluetooth
-    ble.enable(
-        function () { console.log("Bluetooth enabled"); },
-        function () {
-            alert(getMessage("errorBluetooth"));
-            mostrarPanel(PANEL_ERROR);
-        }
-    );
+    //bluetoothle.initialize(initializeResult, params);
+
+    checkPermissions();
+
+    new Promise(function (resolve) {
+
+        bluetoothle.initialize(resolve, { request: true, statusReceiver: false });
+
+    }).then(() => {
+        ble.enable(
+            function () { console.log("Bluetooth enabled"); },
+            function () {
+                alert(getMessage("error enable bluetooth"));
+                mostrarPanel(PANEL_ERROR);
+            }
+        );
+
+    }, () => {
+        alert(getMessage("error initialize bluetooth"));
+        mostrarPanel(PANEL_ERROR);
+    });
+
     //TODO-> PANEL_HOME
+    mostrarPanel(PANEL_HOME);
+}
+
+function checkPermissions() {
+
+    var permissions = cordova.plugins.permissions;
+    var list = [
+        permissions.BLUETOOTH,
+        permissions.BLUETOOTH_ADMIN,
+        permissions.ACCESS_COARSE_LOCATION,
+        permissions.WRITE_EXTERNAL_STORAGE,
+        permissions.ACCESS_FINE_LOCATION,
+    ];
+    for (var perm of list) {
+        checkPerm(perm);
+    }
+}
+
+function checkPerm(perm) {
+    var permissions = cordova.plugins.permissions;
+    //console.log("perm1: " + perm);
+    permissions.checkPermission(perm, function (status) {
+        //console.log("perm: " + perm);
+        //console.log(status);
+        if (!status.hasPermission)
+            permissions.requestPermission(perm, (status) => {
+                if (!status.hasPermission) errorPermision();
+            }, errorPermision2);
+    }, errorPermision2);
+}
+
+
+function errorPermision2() {
+    //console.log("errorpermision2");
+}
+function errorPermision() {
+    //console.log("errorpermision");
+    document.getElementById("error_tit1").innerText = getMessage("errorPermissions1");
+    document.getElementById("error_tit2").innerText = getMessage("errorPermissions2");
+    mostrarPanel(PANEL_ERROR);
+}
+
+function onBackKeyDown() {
+    resetApp();
+}
+
+function onPause() {
+    resetApp();
+}
+
+function resetApp() {
+    if (lastConnection != null)
+        ble.disconnect(lastConnection, () => { console.log("onPause - disconected") }, onError);
+    listaRegistros = [];
+    header = "";
+    deviceName = "";
+    lastFileCreated = "";
+    fileName = "";
+    isBackup = false;
+    lastConnection;
     mostrarPanel(PANEL_HOME);
 }
 
@@ -204,7 +284,8 @@ function actualizarLista(list) {
 
 function addToList(result) {
     //Revisa si ya existe un dispositivo con esa id para no tener duplicados en la lista
-    var yaExiste = foundedDevices.some((device) => { return device.id === result.id; });
+    var yaExiste = (result.name === undefined) || foundedDevices.some((device) => { return device.id === result.id; });
+
     //Si es un dispositivo nuevo se agrega a la lista y a la tabla
     if (!yaExiste) {
         foundedDevices.push(result);
@@ -220,13 +301,14 @@ function addToList(result) {
 
 function conectar(device_id) {
     if (confirm(getMessage("Connect") + device_id + "?")) {
-
+        document.getElementById("textLoading").innerText = getMessage("Connecting");
+        console.log("conectando");
         ble.connect(device_id,
             () => {
-                lastConnection = device_id;
-
-                document.getElementById("textLoading").innerText = getMessage("Loading");
                 mostrarPanel(PANEL_LOADING);
+                console.log("conectando2");
+                document.getElementById("textLoading").innerText = getMessage("Loading");
+                lastConnection = device_id;
                 device = device_id;
                 //bluetoothSerial.clear();
                 //bluetoothSerial.clearDeviceDiscoveredListener();
@@ -263,7 +345,7 @@ FUNCIONES GET DATA
 
 
 function obtenerDeviceName() {
-
+    console.warn("obtenerDeviceName");
     magicNumber = 0;
     ble.startNotification(device, UUID_SERVICE, UUID_CHARACTERISTIC, (buffer_in) => {
         console.log("mensaje: ");
@@ -341,6 +423,7 @@ function onReceiveMessageData(buffer_in) {
 
 function onErrorConnection(err) {
     //bluetoothSerial.unsubscribeRawData(() => { logger("unsubscribeRawData") }, onError);
+    console.log("on error connection");
     ble.disconnect(device, () => { logger("bluettoth desconected") }, onError);
     console.log(buffer);
 
@@ -734,7 +817,7 @@ function cambiarIdioma(idiomaNuevo) {
             document.getElementById("con_titulo").innerText = "seleccione dispositivo";
             document.getElementById("con_col_id").innerText = "id";
             document.getElementById("con_col_name").innerText = "nombre";
-            document.getElementById("con_col_status").innerText = "estado";
+            document.getElementById("con_col_status").innerText = "señal";
             document.getElementById("bConBack").innerText = "atras";
             document.getElementById("bConNext").innerText = "siguiente";
             //GET
@@ -776,7 +859,7 @@ function cambiarIdioma(idiomaNuevo) {
             document.getElementById("con_titulo").innerText = "select device";
             document.getElementById("con_col_id").innerText = "id";
             document.getElementById("con_col_name").innerText = "name";
-            document.getElementById("con_col_status").innerText = "status";
+            document.getElementById("con_col_status").innerText = "signal";
             document.getElementById("bConBack").innerText = "back";
             document.getElementById("bConNext").innerText = "next";
             //GET
@@ -807,12 +890,15 @@ function getMessage(id) {
         case "Paired": return (idioma == IDI_EN) ? "paired" : "emparejado";
         case "Near": return (idioma == IDI_EN) ? "near" : "cercano";
         case "Loading": return (idioma == IDI_EN) ? "loading ..." : "cargando ...";
+        case "Connecting": return (idioma == IDI_EN) ? "connecting ..." : "conectando ...";
         case "Connect": return (idioma == IDI_EN) ? "connect to " : "conectar a ";
         case "SendingData": return (idioma == IDI_EN) ? "sending data ... " : "enviando datos ... ";
         case "GettingData": return (idioma == IDI_EN) ? "getting data ... " : "recibiendo datos ... ";
         case "ConfigSuccess": return (idioma == IDI_EN) ? "device was succesfully configured" : "el dispositivo fue configurado correctamente";
         case "SettingDevice": return (idioma == IDI_EN) ? "setting device ..." : "configurando dispositivo ...";
         case "ProcesingData": return (idioma == IDI_EN) ? "procesing data" : "procesando datos";
+        case "errorPermissions1": return (idioma == IDI_EN) ? "error with permissions" : "error con los permisos";
+        case "errorPermissions2": return (idioma == IDI_EN) ? "please restart and give the app the necessary permissions" : "por favor, reinicie y otorgue a la app los permisos necesarios";
         default: return "<<MESSAGE_ID NOT FOUND>>";
     }
 }

@@ -60,6 +60,7 @@ body {
 .loading-bar img {
     width: 25%;
     margin: auto;
+    margin-top: 50px;
     display: block;
     padding-bottom: 30px;
 }
@@ -92,8 +93,8 @@ body {
 .btn-group-main button {
     display: block;
     width: 80%;
-    margin-bottom: 30px;
     margin: auto;
+    margin-bottom: 30px;
     font-size: 30px !important;
     /* Make the buttons appear below each other */
 }
@@ -155,7 +156,7 @@ label {
 }
 
 .loading-text {
-    font-size: larger;
+    font-size: 30px;
     display: block;
 }
 
@@ -167,9 +168,7 @@ label {
 }
 
 .blockData {
-    height: 320px;
-    width: 90%;
-    display: block;
+    height: 400px;
     overflow-y: scroll;
 }
 
@@ -241,7 +240,7 @@ table.blueTable tfoot .links a {
     margin-bottom: 30px;
     background-color: #5d9cec;
     border-radius: 8px;
-    border: 1px groove black;
+    border: 1px solid black;
     color: white;
     text-decoration: none;
     display: block;
