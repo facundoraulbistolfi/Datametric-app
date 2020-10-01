@@ -231,6 +231,10 @@ table.blueTable tfoot .links a {
     border-radius: 5px;
 }
 
+#dispositivos {
+    width: 90%;
+}
+
 /*button contacto*/
 
 .contactButton {

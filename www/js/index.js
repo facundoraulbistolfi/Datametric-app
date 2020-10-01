@@ -46,6 +46,7 @@ var buffer = [];
 var dataSet;
 var countEndData;
 var magicNumber;
+var setDateTime;
 // Variables para exportar
 var listaRegistros = [];
 var header = "";
@@ -425,8 +426,8 @@ function onErrorConnection(err) {
     //bluetoothSerial.unsubscribeRawData(() => { logger("unsubscribeRawData") }, onError);
     console.log("on error connection");
     ble.disconnect(device, () => { logger("bluettoth desconected") }, onError);
-    console.log(buffer);
 
+    console.log(buffer);
     console.log("onErrorConnection - ble.stopNotification");
     ble.stopNotification(device, UUID_SERVICE, UUID_CHARACTERISTIC,
         (msj) => { console.log("MSJ:" + msj) },
@@ -435,13 +436,17 @@ function onErrorConnection(err) {
 
     if (buffer.length > 0) {
         if (isBackup) {
-            ble.connect(lastConnection,
-                () => {
-                    console.log("reconected to " + lastConnection);
-                    document.getElementById("textLoading").innerText = getMessage("SendingData");
-                    enviarDatos(lastConnection);
+            setTimeout(() => {
+                ble.connect(lastConnection,
+                    () => {
+                        console.log("reconected to " + lastConnection);
+                        document.getElementById("textLoading").innerText = getMessage("SendingData");
+                        enviarDatos(lastConnection);
 
-                }, onError);
+                    }, onError);
+            }, 200
+            )
+
         }
 
         procesarBuffer();
@@ -598,13 +603,31 @@ FUNCIONES SEND DATA
 
 function enviarDatos(dev) {
     magicNumber = 0;
+
+    //Obtiene el dia y la hora ingresada por el usuario para setear
+    var d = new Date(dataSet.datetime);
+    //Formato: //DIA//MES//AÑO//hora//min//seg
+    //var setDateTime = [COMMAND_SET_DATE, to_hex(d.getDate()), to_hex(d.getMonth() + 1), to_hex(d.getFullYear() - 2000), to_hex(d.getHours()), to_hex(d.getMinutes()), 0];
+    setDateTime = new Uint8Array(7);
+    setDateTime[0] = COMMAND_SET_DATE;
+    setDateTime[1] = d.getDate();
+    setDateTime[2] = d.getMonth() + 1;
+    setDateTime[3] = d.getFullYear() - 2000;
+    setDateTime[4] = d.getHours();
+    setDateTime[5] = d.getMinutes();
+    setDateTime[6] = 0x0;
+
     ble.startNotification(dev, UUID_SERVICE, UUID_CHARACTERISTIC, (buffer_in) => {
         console.log("MENSAJE RECIBIDO: ");
         console.log(buffer_in);
         console.log("magicNumber " + magicNumber);
         if (magicNumber == 0) {
-            //HEADER
-            console.log("SET HEADER");
+
+            if (Array.from(new Uint8Array(buffer_in))[0] != setDateTime[3]) {
+                alert(getMessage("errorSetting"));
+                resetApp();
+            }
+
             var i = 1;
             var headerToSend = dataSet.header;
             var dataH = new Uint8Array(1);
@@ -653,19 +676,6 @@ function enviarDatos(dev) {
             );
         }
     }, onError);
-
-    //Obtiene el dia y la hora ingresada por el usuario para setear
-    var d = new Date(dataSet.datetime);
-    //Formato: //DIA//MES//AÑO//hora//min//seg
-    //var setDateTime = [COMMAND_SET_DATE, to_hex(d.getDate()), to_hex(d.getMonth() + 1), to_hex(d.getFullYear() - 2000), to_hex(d.getHours()), to_hex(d.getMinutes()), 0];
-    var setDateTime = new Uint8Array(7);
-    setDateTime[0] = COMMAND_SET_DATE;
-    setDateTime[1] = d.getDate();
-    setDateTime[2] = d.getMonth() + 1;
-    setDateTime[3] = d.getFullYear() - 2000;
-    setDateTime[4] = d.getHours();
-    setDateTime[5] = d.getMinutes();
-    setDateTime[6] = 0x0;
 
     document.getElementById("textLoading").innerText = getMessage("SettingDevice");
 
@@ -758,18 +768,6 @@ function to_hex(dec) {
     return dec;
 }
 
-function onReceiveDateData(buffer_in) {
-
-}
-
-function senWithDelay2(letter, time) {
-    setTimeout(function () {
-        data = new Uint8Array(1);
-        data[0] = letter;
-        ble.write(device, UUID_SERVICE, UUID_CHARACTERISTIC, data, () => { }, onError);
-    }, time);
-}
-
 /* ------------------------------
 FUNCIONES LOG Y OTRAS
 ------------------------------ */
@@ -810,7 +808,7 @@ function cambiarIdioma(idiomaNuevo) {
             document.getElementById("bSetBack").innerText = "atras";
             document.getElementById("bSetNext").innerText = "siguiente";
             //INFO
-            document.getElementById("info_titulo").innerText = "por favor, encienda el dispositivo antes de continuar";
+            document.getElementById("info_titulo").innerText = "antes de continuar, presione el boton del dispositivo para encenderlo. la luz roja debe parpadear.";
             document.getElementById("bInfoBack").innerText = "atras";
             document.getElementById("bInfoNext").innerText = "siguiente";
             //CONEXION
@@ -852,7 +850,7 @@ function cambiarIdioma(idiomaNuevo) {
             document.getElementById("bSetBack").innerText = "back";
             document.getElementById("bSetNext").innerText = "next";
             //INFO
-            document.getElementById("info_titulo").innerText = "please power on the device before bluetooth search";
+            document.getElementById("info_titulo").innerText = "before continuing, press the device button to turn on. the red light must blink.";
             document.getElementById("bInfoBack").innerText = "back";
             document.getElementById("bInfoNext").innerText = "next";
             //CONEXION
@@ -899,6 +897,7 @@ function getMessage(id) {
         case "ProcesingData": return (idioma == IDI_EN) ? "procesing data" : "procesando datos";
         case "errorPermissions1": return (idioma == IDI_EN) ? "error with permissions" : "error con los permisos";
         case "errorPermissions2": return (idioma == IDI_EN) ? "please restart and give the app the necessary permissions" : "por favor, reinicie y otorgue a la app los permisos necesarios";
+        case "errorSetting": return (idioma == IDI_EN) ? "there was a problem setting the device's clock, please retry setting. if the problem persist, contact support " : "hubo un problema al setear el reloj del dispositivo, por favor reintente. si el problema persiste, comuniquese con soporte ";
         default: return "<<MESSAGE_ID NOT FOUND>>";
     }
 }
