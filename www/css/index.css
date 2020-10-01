@@ -1,0 +1,257 @@
+* {
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+    /* make transparent link selection, adjust last value opacity 0 to 1.0 */
+}
+
+/*  https://coolors.co/75aadb-2e72b2-ffffff-fcbf49-fbac0e */
+
+body {
+    -webkit-touch-callout: none;
+    /* prevent callout to copy image, etc when tap to hold */
+    -webkit-text-size-adjust: none;
+    /* prevent webkit from resizing text to fit */
+    -webkit-user-select: text;
+    /* prevent copy paste, to allow, change 'none' to 'text' */
+    background-color: #E4E4E4;
+    font-family: system-ui, -apple-system, -apple-system-font, 'Segoe UI', 'Roboto', sans-serif;
+    font-size: 12px;
+    height: 100vh;
+    margin: 0px;
+    padding: 0px;
+    /* Padding to avoid the "unsafe" areas behind notches in the screen */
+    padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
+    text-transform: uppercase;
+    width: 100%;
+}
+
+/* Portrait layout (default) */
+
+.app {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    /* position in the center of the screen */
+    /* background-color: #adcfeb; */
+    background-color: red;
+}
+
+.panel {
+    width: inherit;
+    height: inherit;
+    background-color: #d6e7f5;
+}
+
+.logo {
+    background-color: #5d9cec;
+}
+
+.logo img {
+    width: 50%;
+    margin: auto;
+    display: block;
+}
+
+.imagen img {
+    height: 300px;
+    margin: auto;
+    display: block;
+}
+
+.loading-bar img {
+    width: 25%;
+    margin: auto;
+    margin-top: 50px;
+    display: block;
+    padding-bottom: 30px;
+}
+
+/* Sytle buttons */
+
+.button {
+    margin-top: 2px;
+    background-color: #5d9cec;
+    border-radius: 8px;
+    border: 1px groove black;
+    color: white;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 30px;
+    padding: 8px 20px;
+}
+
+.button:hover {
+    background-color: #4a89dc;
+}
+
+.btn-group-main {
+    width: 95%;
+    margin: auto;
+    align-content: center;
+}
+
+.btn-group-main button {
+    display: block;
+    width: 80%;
+    margin: auto;
+    margin-bottom: 30px;
+    font-size: 30px !important;
+    /* Make the buttons appear below each other */
+}
+
+.miniButton {
+    height: 50px;
+    margin: 10px;
+}
+
+.miniButton.selected {
+    border: "1px blue solid"
+}
+
+.column {
+    display: block;
+    width: fit-content;
+    margin: auto;
+    align-content: center;
+}
+
+.row {
+    display: block;
+    width: fit-content;
+    margin: auto;
+    align-content: center;
+}
+
+.footer {
+    position: fixed;
+    bottom: 15px;
+    margin: auto;
+    width: 100%;
+}
+
+/*TEXTO*/
+
+label {
+    text-transform: lowercase;
+    display: block;
+    text-align: center;
+}
+
+.titulo {
+    font-size: 30px;
+    margin-bottom: 20px;
+    margin-top: 10px;
+    display: block;
+}
+
+.texto {
+    font-size: 20px;
+    display: block;
+}
+
+.semititulo {
+    display: block;
+    font-size: 20px;
+    margin-bottom: 5px;
+}
+
+.loading-text {
+    font-size: 30px;
+    display: block;
+}
+
+#dataSetHeader {
+    display: block;
+    width: 300px;
+    height: 150px;
+    overflow-y: auto;
+}
+
+.blockData {
+    height: 400px;
+    overflow-y: scroll;
+}
+
+/*Blue table*/
+
+table.blueTable {
+    border: 0px solid #1C6EA4;
+    background-color: #FFFFFF;
+    width: 100%;
+    text-align: center;
+    border-collapse: collapse;
+}
+
+table.blueTable td, table.blueTable th {
+    border: 0px solid #AAAAAA;
+    padding: 7px 3px;
+}
+
+table.blueTable tbody td {
+    font-size: 20px;
+}
+
+table.blueTable tr:nth-child(even) {
+    background: #D0E4F5;
+}
+
+table.blueTable thead {
+    background: #1C6EA4;
+    background: -moz-linear-gradient(top, #5592bb 0%, #327cad 66%, #1C6EA4 100%);
+    background: -webkit-linear-gradient(top, #5592bb 0%, #327cad 66%, #1C6EA4 100%);
+    background: linear-gradient(to bottom, #5592bb 0%, #327cad 66%, #1C6EA4 100%);
+    border-bottom: 0px solid #444444;
+}
+
+table.blueTable thead th {
+    font-size: 23px;
+    font-weight: bold;
+    color: #FFFFFF;
+    text-align: center;
+    border-left: 0px solid #D0E4F5;
+}
+
+table.blueTable thead th:first-child {
+    border-left: none;
+}
+
+table.blueTable tfoot td {
+    font-size: 14px;
+}
+
+table.blueTable tfoot .links {
+    text-align: right;
+}
+
+table.blueTable tfoot .links a {
+    display: inline-block;
+    background: #1C6EA4;
+    color: #FFFFFF;
+    padding: 2px 8px;
+    border-radius: 5px;
+}
+
+/*button contacto*/
+
+.contactButton {
+    position: relative;
+    padding: 15px 40px;
+    text-align: center;
+    margin-bottom: 30px;
+    background-color: #5d9cec;
+    border-radius: 8px;
+    border: 1px solid black;
+    color: white;
+    text-decoration: none;
+    display: block;
+    height: 100px;
+    font-size: 30px;
+}
+
+.contactButton img {
+    position: absolute;
+    height: 70px;
+    left: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+}

@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self' data: gap: https://ssl.gstatic.com 'unsafe-eval'; style-src 'self' 'unsafe-inline'; media-src *; img-src 'self' data: content:;">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="msapplication-tap-highlight" content="no">
+    <meta name="viewport" content="initial-scale=1, width=device-width, viewport-fit=cover">
+    <meta name="color-scheme" content="light dark">
+    <link rel="stylesheet" href="css/index.css">
+    <title>datametric</title>
+</head>
+
+<body>
+    <div class="app">
+        <div id="loading" class="panel">
+            <div class="logo">
+                <img src="./img/DATAMETRIC LOGO.png" id="asd" alt="logo">
+
+            </div>
+            <div class="loading-bar">
+                <img src="./img/loading.gif" id="asd" alt="logo">
+
+            </div>
+            <div class="column">
+                <label class="loading-text" id="textLoading">loading app ...</label>
+            </div>
+
+        </div>
+        <!--
+            PANTALLA PRINCIPAL
+        -->
+        <div id="panel_home" class="panel">
+            <div class="logo">
+                <img src="./img/DATAMETRIC LOGO.png" alt="logo">
+            </div>
+            <div style="display:flex;justify-content:center;align-items:center; height: 70%;">
+                <div class="btn-group-main">
+                    <button id="bGetData" class="button" style="height: 100px; margin-bottom: 70px;
+                    ">get device data</button>
+                    <button id="bSetData" class="button" style="height: 70px;">configure device</button>
+                </div>
+            </div>
+            <div class="row">
+                <input id="idi_en" type="image" class="miniButton selected" src="./img/en.png" />
+                <input id="idi_es" type="image" class="miniButton" src="./img/es.png" />
+                <input id="bContact" type="image" class="miniButton" src="./img/help.png" />
+            </div>
+
+        </div>
+        <!--
+            PANTALLA CONTACTO
+        -->
+        <div id="panel_contact" class="panel">
+            <div class="logo">
+                <img src="./img/DATAMETRIC LOGO.png" id="asd" alt="logo">
+
+            </div>
+            <div>
+                <label id="cont_titulo" class="titulo">CONTACT</label>
+                <div style="display:flex;justify-content:center;align-items:center; height: 70%;">
+                    <div class="btn-group-main">
+                        <button id="cont_wsp" class="contactButton">
+                            <img src="./img/wsp.png"> whatsapp
+                        </button>
+
+                        <button id="cont_mail" class="contactButton">
+                            <img src="./img/email.png"> email
+                        </button>
+
+                        <button id="cont_web" class="contactButton">
+                            <img src="./img/web.png"> website
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="footer">
+                <div class="row">
+                    <button id="bGoHome" class="button">HOME</button>
+                </div>
+            </div>
+        </div>
+        <!--
+            PANTALLA SETEO DE DATOS A ENVIAR
+        -->
+        <div id="panel_set_data" class="panel">
+            <div class="logo">
+                <img src="./img/DATAMETRIC LOGO.png" alt="logo">
+            </div>
+            <div class="column" width="50%">
+                <label id="tituloSet" class="titulo">set header and timestamp</label>
+                <div>
+                    <label id="set_header" class="semititulo">Header</label>
+                    <textarea id="dataSetHeader"></textarea>
+                    <button id="bImportHeader" style="visibility: hidden;" class="button">Import</button>
+                </div>
+                <hr>
+                <div>
+                    <label id="set_timestamp" class="semititulo"></label>
+                    <input id="dataSetDate" type="datetime-local"></input>
+                </div>
+            </div>
+            <div class="footer">
+                <div class="row">
+                    <button id="bSetBack" class="button">BACK</button>
+                    <button id="bSetNext" class="button">NEXT</button>
+                </div>
+            </div>
+        </div>
+        <!--
+                PANTALLA INFO
+        -->
+        <div id="panel_info" class="panel">
+            <div class="logo">
+                <img src="./img/DATAMETRIC LOGO.png" alt="logo">
+            </div>
+            <div class="column">
+                <label id="info_titulo" class="titulo">Please power on the device before bluetooth search</label>
+
+            </div>
+            <div class="imagen"><img src="./img/info.jpg" alt="info"></div>
+
+
+            <div class="footer">
+                <div class="row">
+                    <button id="bInfoBack" class="button">BACK</button>
+                    <button id="bInfoNext" class="button">NEXT</button>
+                </div>
+            </div>
+        </div>
+        <!--
+            PANTALLA CONEXION Y ENVIO DE DATOS
+        -->
+        <div id="panel_connect" class="panel">
+            <div class="logo">
+                <img src="./img/DATAMETRIC LOGO.png" alt="logo">
+            </div>
+            <div id="dispositivos" style="visibility: hidden;" class="column">
+                <label id="con_titulo" class="titulo">SELECT DEVICE</label>
+                <table class="blueTable">
+                    <thead>
+                        <tr>
+                            <th id="con_col_id">ID</th>
+                            <th id="con_col_name">NAME</th>
+                            <th id="con_col_status">STATUS</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla_dispositivos">
+                    </tbody>
+                </table>
+            </div>
+            <div class="footer">
+                <div class="row">
+                    <button id="bConBack" class="button">BACK</button>
+                    <button id="bConNext" style="visibility: hidden;" class="button">NEXT</button>
+                    <!-- style="visibility: hidden;" -->
+                </div>
+            </div>
+        </div>
+        <!--
+            PANTALLA RECEPCION DATOS
+        -->
+        <div id="panel_get_data" class="panel">
+            <div class="logo">
+                <img src="./img/DATAMETRIC LOGO.png" alt="logo">
+            </div>
+            <div class="column" style="min-width: 90%;height: max-content;">
+                <div>
+                    <label id="get_device_id" class="texto">Device</label>
+                    <label readonly id="getDeviceName"></label>
+                </div>
+                <div>
+                    <label id="get_header" class="texto">Header</label>
+                    <textarea style="height: 50px;width: 100%;" id="getHeader"></textarea>
+                </div>
+                <div style="height: inherit;">
+                    <label id="get_data" class="texto">Data</label>
+                    <div class="blockData">
+                        <table class="blueTable">
+                            <thead>
+                                <tr>
+                                    <th id="get_col_date">Date</th>
+                                    <th id="get_col_hour">Hour</th>
+                                    <th id="get_col_temp">Temp</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla_data">
+
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="footer">
+                <div class="row">
+                    <button id="bExport" class="button">EXPORT</button>
+                    <button id="bGetHome" class="button">HOME</button>
+                </div>
+            </div>
+        </div>
+        <!--
+            PANTALLA ERROR
+        -->
+        <div id="panel_error" class="panel">
+            <div class="logo">
+                <img src="./img/DATAMETRIC LOGO.png" alt="logo">
+            </div>
+            <div class="column">
+                <label id="error_tit1" class="titulo">Error with bluetooth</label>
+                <label id="error_tit2">Please active bluetooth and reopen the app</label>
+            </div>
+        </div>
+    </div>
+    <script src="cordova.js"></script>
+    <script src="js/index.js"></script>
+</body>
+
+</html>
