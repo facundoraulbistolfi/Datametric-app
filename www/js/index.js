@@ -154,7 +154,7 @@ function resetApp() {
     lastFileCreated = "";
     fileName = "";
     isBackup = false;
-    lastConnection;
+    lastConnection = null;
     mostrarPanel(PANEL_HOME);
 }
 
@@ -425,7 +425,7 @@ function onReceiveMessageData(buffer_in) {
 function onErrorConnection(err) {
     //bluetoothSerial.unsubscribeRawData(() => { logger("unsubscribeRawData") }, onError);
     console.log("on error connection");
-    ble.disconnect(device, () => { logger("bluettoth desconected") }, onError);
+    //ble.disconnect(device, () => { logger("bluettoth desconected") }, onError);
 
     console.log(buffer);
     console.log("onErrorConnection - ble.stopNotification");
@@ -461,7 +461,7 @@ function onErrorConnection(err) {
 
 
 function procesarBuffer() {
-    document.getElementById("textLoading").innerText = getMessage("ProcesingData");
+    if (!isBackup) document.getElementById("textLoading").innerText = getMessage("ProcesingData");
     //console.log("PROCESAR BUFFER")
     //TODO: Contar cantidad de FF
     var primer = buffer.indexOf(255);
@@ -629,7 +629,10 @@ function enviarDatos(dev) {
             }
 
             var i = 1;
-            var headerToSend = dataSet.header;
+
+            var offset = new Date().getTimezoneOffset();
+            var headerToSend = "GMT" + ((offset >= 0) ? ("-" + (offset / 60)) : ("+" + (offset / -60))) + " " + dataSet.header;
+            console.log(headerToSend);
             var dataH = new Uint8Array(1);
             dataH[0] = COMMAND_SET_HEADER;
             console.log(dataH);
@@ -796,85 +799,85 @@ function cambiarIdioma(idiomaNuevo) {
     switch (idiomaNuevo) {
         case IDI_ES:
             //HOME
-            document.getElementById("bGetData").innerText = "obtener datos del dispositivo";
-            document.getElementById("bSetData").innerText = "configurar dispositivo";
+            document.getElementById("bGetData").innerText = "Obtener datos del dispositivo";
+            document.getElementById("bSetData").innerText = "Configurar dispositivo";
             //LOADING
-            document.getElementById("textLoading").innerText = "cargando aplicación ...";
+            document.getElementById("textLoading").innerText = "Cargando aplicación ...";
             //SET
-            document.getElementById("tituloSet").innerText = "setear cabecera \ny marca de tiempo";
-            document.getElementById("set_header").innerText = "cabecera";
-            document.getElementById("bImportHeader").innerText = "importar";
-            document.getElementById("set_timestamp").innerText = "fecha y hora";
-            document.getElementById("bSetBack").innerText = "atras";
-            document.getElementById("bSetNext").innerText = "siguiente";
+            document.getElementById("tituloSet").innerText = "Establecer encabezado\n y marca de tiempo";
+            document.getElementById("set_header").innerText = "Encabezado (1900 caracteres máximo)";
+            document.getElementById("bImportHeader").innerText = "Importar";
+            document.getElementById("set_timestamp").innerText = "Fecha y hora";
+            document.getElementById("bSetBack").innerText = "Atrás";
+            document.getElementById("bSetNext").innerText = "Siguiente";
             //INFO
-            document.getElementById("info_titulo").innerText = "antes de continuar, presione el boton del dispositivo para encenderlo. la luz roja debe parpadear.";
-            document.getElementById("bInfoBack").innerText = "atras";
-            document.getElementById("bInfoNext").innerText = "siguiente";
+            document.getElementById("info_titulo").innerText = "Antes de continuar, presione el botón del dispositivo para encenderlo. La luz roja del dispositivo debe parpadear.";
+            document.getElementById("bInfoBack").innerText = "Atrás";
+            document.getElementById("bInfoNext").innerText = "Siguiente";
             //CONEXION
-            document.getElementById("con_titulo").innerText = "seleccione dispositivo";
-            document.getElementById("con_col_id").innerText = "id";
-            document.getElementById("con_col_name").innerText = "nombre";
-            document.getElementById("con_col_status").innerText = "señal";
-            document.getElementById("bConBack").innerText = "atras";
-            document.getElementById("bConNext").innerText = "siguiente";
+            document.getElementById("con_titulo").innerText = "Seleccione dispositivo";
+            document.getElementById("con_col_id").innerText = "ID";
+            document.getElementById("con_col_name").innerText = "Nombre";
+            document.getElementById("con_col_status").innerText = "Señal";
+            document.getElementById("bConBack").innerText = "Atrás";
+            document.getElementById("bConNext").innerText = "Siguiente";
             //GET
-            document.getElementById("get_device_id").innerText = "id dispositivo: ";
-            document.getElementById("get_header").innerText = "cabecera";
-            document.getElementById("get_data").innerText = "datos";
-            document.getElementById("get_col_date").innerText = "fecha";
-            document.getElementById("get_col_hour").innerText = "hora";
-            document.getElementById("get_col_temp").innerText = "temp";
-            document.getElementById("bExport").innerText = "exportar";
-            document.getElementById("bGetHome").innerText = "inicio";
+            document.getElementById("get_device_id").innerText = "ID Dispositivo: ";
+            document.getElementById("get_header").innerText = "Encabezado";
+            document.getElementById("get_data").innerText = "Datos";
+            document.getElementById("get_col_date").innerText = "Fecha";
+            document.getElementById("get_col_hour").innerText = "Hora";
+            document.getElementById("get_col_temp").innerText = "Temp";
+            document.getElementById("bExport").innerText = "Exportar";
+            document.getElementById("bGetHome").innerText = "Inicio";
             //ERROR
-            document.getElementById("error_tit1").innerText = "error de bluetooth";
-            document.getElementById("error_tit2").innerText = "por favor, active el bluetooth y reinicie la aplicación";
+            document.getElementById("error_tit1").innerText = "Error de bluetooth";
+            document.getElementById("error_tit2").innerText = "Por favor, active el bluetooth y reinicie la aplicación";
             //CONTACT
-            document.getElementById("bGoHome").innerText = "inicio";
-            document.getElementById("cont_titulo").innerText = "contacto";
+            document.getElementById("bGoHome").innerText = "Inicio";
+            document.getElementById("cont_titulo").innerText = "Contacto";
 
             idioma = idiomaNuevo;
             break;
         case IDI_EN:
             //HOME
-            document.getElementById("bGetData").innerText = "get device data";
-            document.getElementById("bSetData").innerText = "configure device";
+            document.getElementById("bGetData").innerText = "Get device data";
+            document.getElementById("bSetData").innerText = "Configure device";
             //LOADING
-            document.getElementById("textLoading").innerText = "loading app ...";
+            document.getElementById("textLoading").innerText = "Loading app ...";
             //SET
-            document.getElementById("tituloSet").innerText = "set header and timestamp";
-            document.getElementById("set_header").innerText = "header";
-            document.getElementById("bImportHeader").innerText = "import";
-            document.getElementById("set_timestamp").innerText = "date and Time";
-            document.getElementById("bSetBack").innerText = "back";
-            document.getElementById("bSetNext").innerText = "next";
+            document.getElementById("tituloSet").innerText = "Set header and timestamp";
+            document.getElementById("set_header").innerText = "Header (1900 characters max)";
+            document.getElementById("bImportHeader").innerText = "Import";
+            document.getElementById("set_timestamp").innerText = "Date and time";
+            document.getElementById("bSetBack").innerText = "Back";
+            document.getElementById("bSetNext").innerText = "Next";
             //INFO
-            document.getElementById("info_titulo").innerText = "before continuing, press the device button to turn on. the red light must blink.";
-            document.getElementById("bInfoBack").innerText = "back";
-            document.getElementById("bInfoNext").innerText = "next";
+            document.getElementById("info_titulo").innerText = "Before continuing, turn on the device pressing the button. The device's red light should blink.";
+            document.getElementById("bInfoBack").innerText = "Back";
+            document.getElementById("bInfoNext").innerText = "Next";
             //CONEXION
-            document.getElementById("con_titulo").innerText = "select device";
-            document.getElementById("con_col_id").innerText = "id";
-            document.getElementById("con_col_name").innerText = "name";
-            document.getElementById("con_col_status").innerText = "signal";
-            document.getElementById("bConBack").innerText = "back";
-            document.getElementById("bConNext").innerText = "next";
+            document.getElementById("con_titulo").innerText = "Select device";
+            document.getElementById("con_col_id").innerText = "ID";
+            document.getElementById("con_col_name").innerText = "Name";
+            document.getElementById("con_col_status").innerText = "Signal";
+            document.getElementById("bConBack").innerText = "Back";
+            document.getElementById("bConNext").innerText = "Next";
             //GET
-            document.getElementById("get_device_id").innerText = "device id: ";
-            document.getElementById("get_header").innerText = "header";
-            document.getElementById("get_data").innerText = "data";
-            document.getElementById("get_col_date").innerText = "date";
-            document.getElementById("get_col_hour").innerText = "hour";
-            document.getElementById("get_col_temp").innerText = "temp";
-            document.getElementById("bExport").innerText = "export";
-            document.getElementById("bGetHome").innerText = "home";
+            document.getElementById("get_device_id").innerText = "Device ID: ";
+            document.getElementById("get_header").innerText = "Header";
+            document.getElementById("get_data").innerText = "Data";
+            document.getElementById("get_col_date").innerText = "Date";
+            document.getElementById("get_col_hour").innerText = "Hour";
+            document.getElementById("get_col_temp").innerText = "Temp";
+            document.getElementById("bExport").innerText = "Export";
+            document.getElementById("bGetHome").innerText = "Home";
             //ERROR
-            document.getElementById("error_tit1").innerText = "error with bluetooth";
-            document.getElementById("error_tit2").innerText = "please active bluetooth and reopen the app";
+            document.getElementById("error_tit1").innerText = "Error with bluetooth";
+            document.getElementById("error_tit2").innerText = "Please activate bluetooth and reopen the app";
             //CONTACT
-            document.getElementById("bGoHome").innerText = "home";
-            document.getElementById("cont_titulo").innerText = "contact";
+            document.getElementById("bGoHome").innerText = "Home";
+            document.getElementById("cont_titulo").innerText = "Contact";
             //document.getElementById("").innerText = "";
             idioma = idiomaNuevo;
             break;
@@ -884,20 +887,20 @@ function cambiarIdioma(idiomaNuevo) {
 
 function getMessage(id) {
     switch (id) {
-        case "errorBluetooth": return (idioma == IDI_EN) ? "error: bluetooth not enabled" : "error: el bluetooth está desactivado";
-        case "Paired": return (idioma == IDI_EN) ? "paired" : "emparejado";
-        case "Near": return (idioma == IDI_EN) ? "near" : "cercano";
-        case "Loading": return (idioma == IDI_EN) ? "loading ..." : "cargando ...";
-        case "Connecting": return (idioma == IDI_EN) ? "connecting ..." : "conectando ...";
-        case "Connect": return (idioma == IDI_EN) ? "connect to " : "conectar a ";
-        case "SendingData": return (idioma == IDI_EN) ? "sending data ... " : "enviando datos ... ";
-        case "GettingData": return (idioma == IDI_EN) ? "getting data ... " : "recibiendo datos ... ";
-        case "ConfigSuccess": return (idioma == IDI_EN) ? "device was succesfully configured" : "el dispositivo fue configurado correctamente";
-        case "SettingDevice": return (idioma == IDI_EN) ? "setting device ..." : "configurando dispositivo ...";
-        case "ProcesingData": return (idioma == IDI_EN) ? "procesing data" : "procesando datos";
-        case "errorPermissions1": return (idioma == IDI_EN) ? "error with permissions" : "error con los permisos";
-        case "errorPermissions2": return (idioma == IDI_EN) ? "please restart and give the app the necessary permissions" : "por favor, reinicie y otorgue a la app los permisos necesarios";
-        case "errorSetting": return (idioma == IDI_EN) ? "there was a problem setting the device's clock, please retry setting. if the problem persist, contact support " : "hubo un problema al setear el reloj del dispositivo, por favor reintente. si el problema persiste, comuniquese con soporte ";
+        case "errorBluetooth": return (idioma == IDI_EN) ? "Error: Bluetooth not enabled" : "Error: el Bluetooth está desactivado";
+        case "Paired": return (idioma == IDI_EN) ? "Paired" : "Emparejado";
+        case "Near": return (idioma == IDI_EN) ? "Near" : "Cercano";
+        case "Loading": return (idioma == IDI_EN) ? "Loading ..." : "Cargando ...";
+        case "Connecting": return (idioma == IDI_EN) ? "Connecting ..." : "Conectando ...";
+        case "Connect": return (idioma == IDI_EN) ? "Connect to " : "Conectar a ";
+        case "SendingData": return (idioma == IDI_EN) ? "Sending data ... " : "Enviando datos ... ";
+        case "GettingData": return (idioma == IDI_EN) ? "Getting data ... " : "Recibiendo datos ... ";
+        case "ConfigSuccess": return (idioma == IDI_EN) ? "Device was succesfully configured" : "El dispositivo fue configurado correctamente";
+        case "SettingDevice": return (idioma == IDI_EN) ? "Setting device ..." : "Configurando dispositivo ...";
+        case "ProcesingData": return (idioma == IDI_EN) ? "Processing data" : "Procesando datos";
+        case "errorPermissions1": return (idioma == IDI_EN) ? "Error with app permissions" : "Error con los permisos de la aplicación";
+        case "errorPermissions2": return (idioma == IDI_EN) ? "Please restart and give the app the necessary permissions" : "Por favor, reinicie y otorgue a la app los permisos necesarios";
+        case "errorSetting": return (idioma == IDI_EN) ? "There was a problem setting the device's clock, please retry setting. If the problem persist, contact support " : "Hubo un problema al configurar el reloj del dispositivo, por favor reintente. Si el problema persiste, comuníquese con soporte ";
         default: return "<<MESSAGE_ID NOT FOUND>>";
     }
 }

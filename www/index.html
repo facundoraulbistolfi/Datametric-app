@@ -25,7 +25,7 @@
 
             </div>
             <div class="column">
-                <label class="loading-text" id="textLoading">loading app ...</label>
+                <span class="loading-text" id="textLoading">loading app ...</span>
             </div>
 
         </div>
@@ -59,19 +59,19 @@
 
             </div>
             <div>
-                <label id="cont_titulo" class="titulo">CONTACT</label>
+                <span id="cont_titulo" class="titulo">CONTACT</span>
                 <div style="display:flex;justify-content:center;align-items:center; height: 70%;">
                     <div class="btn-group-main">
                         <button id="cont_wsp" class="contactButton">
-                            <img src="./img/wsp.png"> whatsapp
+                            <img src="./img/wsp.png"> Whatsapp
                         </button>
 
                         <button id="cont_mail" class="contactButton">
-                            <img src="./img/email.png"> email
+                            <img src="./img/email.png"> E-mail
                         </button>
 
                         <button id="cont_web" class="contactButton">
-                            <img src="./img/web.png"> website
+                            <img src="./img/web.png"> Website
                         </button>
                     </div>
                 </div>
@@ -90,15 +90,15 @@
                 <img src="./img/DATAMETRIC LOGO.png" alt="logo">
             </div>
             <div class="column" width="50%">
-                <label id="tituloSet" class="titulo">set header and timestamp</label>
+                <span id="tituloSet" class="titulo">set header and timestamp</span>
                 <div>
-                    <label id="set_header" class="semititulo">Header</label>
-                    <textarea id="dataSetHeader"></textarea>
+                    <span id="set_header" class="semititulo">Header</span>
+                    <textarea id="dataSetHeader" maxlength="1900"></textarea>
                     <button id="bImportHeader" style="visibility: hidden;" class="button">Import</button>
                 </div>
                 <hr>
                 <div>
-                    <label id="set_timestamp" class="semititulo"></label>
+                    <span id="set_timestamp" class="semititulo"></span>
                     <input id="dataSetDate" type="datetime-local"></input>
                 </div>
             </div>
@@ -117,7 +117,7 @@
                 <img src="./img/DATAMETRIC LOGO.png" alt="logo">
             </div>
             <div class="column">
-                <label id="info_titulo" class="titulo">Please power on the device before bluetooth search</label>
+                <span id="info_titulo" class="titulo">Please power on the device before bluetooth search</span>
 
             </div>
             <div class="imagen"><img src="./img/info.jpg" alt="info"></div>
@@ -138,7 +138,7 @@
                 <img src="./img/DATAMETRIC LOGO.png" alt="logo">
             </div>
             <div id="dispositivos" style="visibility: hidden;" class="column">
-                <label id="con_titulo" class="titulo">SELECT DEVICE</label>
+                <span id="con_titulo" class="titulo">SELECT DEVICE</span>
                 <table class="blueTable">
                     <thead>
                         <tr>
@@ -166,17 +166,17 @@
             <div class="logo">
                 <img src="./img/DATAMETRIC LOGO.png" alt="logo">
             </div>
-            <div class="column" style="min-width: 90%;height: max-content;">
+            <div class="column" style="min-width: 90%;height: inherit;">
                 <div>
-                    <label id="get_device_id" class="texto">Device</label>
-                    <label readonly id="getDeviceName"></label>
+                    <span id="get_device_id" class="texto">Device</span>
+                    <span readonly id="getDeviceName"></span>
                 </div>
                 <div>
-                    <label id="get_header" class="texto">Header</label>
+                    <span id="get_header" class="texto">Header</span>
                     <textarea style="height: 50px;width: 100%;" id="getHeader"></textarea>
                 </div>
                 <div style="height: inherit;">
-                    <label id="get_data" class="texto">Data</label>
+                    <span id="get_data" class="texto">Data</span>
                     <div class="blockData">
                         <table class="blueTable">
                             <thead>
@@ -208,8 +208,8 @@
                 <img src="./img/DATAMETRIC LOGO.png" alt="logo">
             </div>
             <div class="column">
-                <label id="error_tit1" class="titulo">Error with bluetooth</label>
-                <label id="error_tit2">Please active bluetooth and reopen the app</label>
+                <span id="error_tit1" class="titulo">Error with bluetooth</span>
+                <span id="error_tit2">Please active bluetooth and reopen the app</span>
             </div>
         </div>
     </div>
