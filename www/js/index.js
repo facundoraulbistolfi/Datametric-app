@@ -504,7 +504,7 @@ function procesarBufferData(b) {
 }
 
 function getTemperatura(temp) {
-    if (temp > 0x80)	// procesar el signo
+    if (temp >= 0x80)	// procesar el signo
         temp = (temp - 0x80) * -1;
     return temp;
 }
