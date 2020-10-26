@@ -1,7 +1,7 @@
 {
   "name": "orange.fbis.datametric",
   "displayName": "Datametric",
-  "version": "1.0.0",
+  "version": "1.0.4",
   "description": "Datametric connect app.",
   "main": "index.js",
   "scripts": {
