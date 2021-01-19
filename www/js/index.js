@@ -3,8 +3,8 @@
 //Constantes Bluetooth
 //const UUID_SERVICE = "cc88c38f-5da3-4ae2-aaf0-9a22f8f4d5f7";
 //const UUID_CHARACTERISTIC = "29619ec5-2799-4a46-8c81-fca529cd56f3";
-const UUID_SERVICE = "0000ffe0-0000-1000-8000-00805f9b34fb";
-const UUID_CHARACTERISTIC = "0000ffe1-0000-1000-8000-00805f9b34fb";
+const UUID_SERVICE = "FFE0";
+const UUID_CHARACTERISTIC = "FFE1";
 
 //Comandos Datametric device
 const COMMAND_NAME_DEVICE = 0x69;//'i';//0x69; //Devuele el id unico del dispositivo -> i
@@ -529,7 +529,7 @@ function normNumero(n) {
 function guardarArchivo() {
     /*Guardar en file system*/
     fileName = 'datametric-' + deviceName + '-' + formatDate(new Date(Date.now())) + '.csv';
-    window.resolveLocalFileSystemURL(cordova.file.externalDataDirectory, (dir) => {
+    window.resolveLocalFileSystemURL(cordova.file.dataDirectory, (dir) => {
         dir.getFile(fileName, { create: true }, (file) => {
             writeLog(file);
             lastFileCreated = fileName;
