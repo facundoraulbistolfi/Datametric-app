@@ -425,13 +425,16 @@ function onReceiveMessageData(buffer_in) {
 function onErrorConnection(err) {
     //bluetoothSerial.unsubscribeRawData(() => { logger("unsubscribeRawData") }, onError);
     console.log("on error connection");
+    console.log("Aguante los redondos");
+    console.log("y hermetica");
+
     //ble.disconnect(device, () => { logger("bluettoth desconected") }, onError);
 
     console.log(buffer);
     console.log("onErrorConnection - ble.stopNotification");
     ble.stopNotification(device, UUID_SERVICE, UUID_CHARACTERISTIC,
         (msj) => { console.log("MSJ:" + msj) },
-        (err) => { console.log("ERR:" + err) }
+        (err) => { console.log("ERR: in stopNotification" + err) }
     );
 
     if (buffer.length > 0) {
@@ -442,9 +445,9 @@ function onErrorConnection(err) {
                         console.log("reconected to " + lastConnection);
                         document.getElementById("textLoading").innerText = getMessage("SendingData");
                         enviarDatos(lastConnection);
-
+                        
                     }, onError);
-            }, 200
+            }, 500
             )
 
         }
@@ -499,7 +502,7 @@ function procesarBufferData(b) {
     if (!isBackup)
         escribirRegistros();
     guardarArchivo();
-    enviarPorFTP();
+    //enviarPorFTP();
 
 }
 
@@ -528,36 +531,61 @@ function normNumero(n) {
 
 function guardarArchivo() {
     /*Guardar en file system*/
+    console.log("GUARDAR ARCHIVO");
+    //TODO: Borrar:
+    deviceName = "pruebaAAAaAaa";
     fileName = 'datametric-' + deviceName + '-' + formatDate(new Date(Date.now())) + '.csv';
+
     window.resolveLocalFileSystemURL(cordova.file.dataDirectory, (dir) => {
         dir.getFile(fileName, { create: true }, (file) => {
+            console.log("WRITE LOG");
             writeLog(file);
+            console.log("FILE " + file);
+            console.log("fileName " + fileName);
             lastFileCreated = fileName;
+            console.log("lastFileCreated " + lastFileCreated);
+
+            console.log("WRITE LOG finished");
+
+            enviarPorFTP();
         }, onError);
     }, onError);
-
+    console.log("ARCHIVO GUARDADO");
+    
 }
 
 function enviarPorFTP() {
     //TODO: ver como guardar mejor las contraseñas
-    window.cordova.plugin.ftp.connect('ftp.datametric.com.ar', 'app@datametric.com.ar', 'setiembre2020', function (ok) {
-        //console.log("ftp: connect ok=" + ok);
+    console.log("enviarPorFTP");
+    window.cordova.plugin.ftp.connect('ftp://datametric.com.ar', 'app@datametric.com.ar', 'setiembre2020', function (ok) {
+        console.log("ftp: connect ok=" + ok);
         // You can do any ftp actions from now on...
-        //console.log("FILE: " + cordova.file.externalDataDirectory + lastFileCreated);
+        console.log("FILE: " + cordova.file.dataDirectory + lastFileCreated);
+        console.log("NAME" + lastFileCreated);
         var ftpPath = ((isBackup) ? "/backups/" : "/") + lastFileCreated;
         //console.log("ftpPath: " + ftpPath);
-        window.cordova.plugin.ftp.upload(cordova.file.externalDataDirectory + lastFileCreated, ftpPath, function (percent) {
+        window.cordova.plugin.ftp.upload(cordova.file.dataDirectory + lastFileCreated, ftpPath, function (percent) {
             if (percent == 1) {
+                //window.cordova.plugin.ftp.disconnect(()=>{},()=>{});
+
                 console.log("ftp: upload finish");
-                if (!isBackup) mostrarPanel(PANEL_GET);
+                if (!isBackup) {
+                    console.log("it's not for backup so...")
+                    mostrarPanel(PANEL_GET);
+                }
             } else {
                 console.log("ftp: upload percent=" + percent * 100 + "%");
                 //document.getElementById("textLoading").innerText = "ftp: upload percent=" + percent * 100 + "%";
             }
-        }, onFtpError);
+        }, function(error) {
+            console.error("ftp: upload error=" + error);
+            mostrarPanel(PANEL_GET);
+        });
 
-    }, onFtpError);
-
+    }, function(error) {
+        console.error("ftp: connect error=" + error);
+        mostrarPanel(PANEL_GET);
+    });
 }
 
 function writeLog(logOb) {
@@ -594,7 +622,7 @@ function formatDate(date) {
 
 function exportarDatos() {
     /* Enviar archivo creado */
-    window.plugins.socialsharing.share('Here is your CSV file', 'Your CSV', cordova.file.externalDataDirectory + fileName)
+    window.plugins.socialsharing.share('Here is your CSV file', 'Your CSV', cordova.file.dataDirectory + fileName)
 }
 
 /* ------------------------------
@@ -783,8 +811,8 @@ function onError(err) {
 
 function onFtpError(err) {
     //logger("ERROR: " + JSON.stringify(err));
-    console.log("ERROR: " + JSON.stringify(err));
-    alert("ERROR: " + JSON.stringify(err));
+    console.log("FTP ERROR: " + JSON.stringify(err));
+    alert("FTP ERROR: " + JSON.stringify(err));
     mostrarPanel(PANEL_GET);
 }
 
