@@ -425,8 +425,6 @@ function onReceiveMessageData(buffer_in) {
 function onErrorConnection(err) {
     //bluetoothSerial.unsubscribeRawData(() => { logger("unsubscribeRawData") }, onError);
     console.log("on error connection");
-    console.log("Aguante los redondos");
-    console.log("y hermetica");
 
     //ble.disconnect(device, () => { logger("bluettoth desconected") }, onError);
 
@@ -456,7 +454,7 @@ function onErrorConnection(err) {
     }
     else {
         mostrarPanel(PANEL_HOME);
-        alert("ERROR: BLUETOOTH DISCONECTED");
+//        alert("ERROR: BLUETOOTH DISCONECTED");
     }
 
 
@@ -532,8 +530,8 @@ function normNumero(n) {
 function guardarArchivo() {
     /*Guardar en file system*/
     console.log("GUARDAR ARCHIVO");
+    console.log("Dispositivo: " + deviceName);
     //TODO: Borrar:
-    deviceName = "pruebaAAAaAaa";
     fileName = 'datametric-' + deviceName + '-' + formatDate(new Date(Date.now())) + '.csv';
 
     window.resolveLocalFileSystemURL(cordova.file.dataDirectory, (dir) => {
@@ -556,36 +554,33 @@ function guardarArchivo() {
 
 function enviarPorFTP() {
     //TODO: ver como guardar mejor las contraseñas
-    console.log("enviarPorFTP");
-    window.cordova.plugin.ftp.connect('ftp://datametric.com.ar', 'app@datametric.com.ar', 'setiembre2020', function (ok) {
-        console.log("ftp: connect ok=" + ok);
-        // You can do any ftp actions from now on...
-        console.log("FILE: " + cordova.file.dataDirectory + lastFileCreated);
-        console.log("NAME" + lastFileCreated);
-        var ftpPath = ((isBackup) ? "/backups/" : "/") + lastFileCreated;
-        //console.log("ftpPath: " + ftpPath);
-        window.cordova.plugin.ftp.upload(cordova.file.dataDirectory + lastFileCreated, ftpPath, function (percent) {
-            if (percent == 1) {
-                //window.cordova.plugin.ftp.disconnect(()=>{},()=>{});
+    console.log("enviarPorFTP ponele");
 
-                console.log("ftp: upload finish");
-                if (!isBackup) {
-                    console.log("it's not for backup so...")
-                    mostrarPanel(PANEL_GET);
-                }
-            } else {
-                console.log("ftp: upload percent=" + percent * 100 + "%");
-                //document.getElementById("textLoading").innerText = "ftp: upload percent=" + percent * 100 + "%";
-            }
-        }, function(error) {
-            console.error("ftp: upload error=" + error);
-            mostrarPanel(PANEL_GET);
-        });
+    cordova.plugin.http.setDataSerializer('utf8');
+    cordova.plugin.http.setRequestTimeout(30);
 
-    }, function(error) {
-        console.error("ftp: connect error=" + error);
-        mostrarPanel(PANEL_GET);
-    });
+    fileName = 'datametric-' + deviceName + '-' + formatDate(new Date(Date.now())) + '.csv';
+
+    const options = {
+        method: 'post',
+        data: exportToCsvString(header,listaRegistros),
+        headers: {}
+      };
+    
+      console.log("sending...");
+      cordova.plugin.http.sendRequest('http://api.ingenieriaorange.com.ar/index.php?name=' + fileName, options, function(response) {
+        // prints 200
+        console.log("sended");
+        console.log(response.status);
+        if (!isBackup) mostrarPanel(PANEL_GET);
+      }, function(response) {
+        // prints 403
+        console.log(response.status);
+        //prints Permission denied
+        console.log(response.error);
+        alert(response.error);
+      });
+
 }
 
 function writeLog(logOb) {
@@ -607,6 +602,18 @@ function exportToCsv(header, data) {
         csvFile += processRow(data[i]);
     }
     return (new Blob([csvFile], { type: 'text/csv;charset=utf-8;' }));
+}
+
+function exportToCsvString(header, data) {
+    function processRow(reg) {
+        return reg.dia + ';' + reg.hora + ';' + reg.temperatura + '\n';
+    }
+    var csvFile = header + ";;\nDATA;;\n";
+    csvFile += "Date;Hour;Temperature\n"
+    for (var i = 0; i < data.length; i++) {
+        csvFile += processRow(data[i]);
+    }
+    return csvFile;
 }
 
 function formatDate(date) {
@@ -806,7 +813,7 @@ FUNCIONES LOG Y OTRAS
 function onError(err) {
     //logger("ERROR: " + JSON.stringify(err));
     console.log("ERROR: " + JSON.stringify(err));
-    alert("ERROR: " + JSON.stringify(err));
+    //alert("ERROR: " + JSON.stringify(err));
 }
 
 function onFtpError(err) {
